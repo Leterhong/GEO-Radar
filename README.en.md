@@ -20,17 +20,11 @@ Turn real AI-search web results into traceable, recomputable and reviewable bran
 
 [简体中文](README.md) · [English](README.en.md)
 
-<img src="https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/demo.gif" alt="GEO Radar evidence detail" width="900" />
-
-<sub>Raw results are immutable; page analysis, brand matching and human review live in a separate layer.</sub>
-
 </div>
 
 ---
 
 > **In one sentence**: no opaque “AI visibility score”. Store every real search result, turn pages into evidence, then compute metrics, matrices, comparisons and reports.
-
-> **Status**: prototype. Real calls to Tencent Cloud Yuanbao SearchPro have been made; APIs and definitions are still evolving.
 
 ---
 
@@ -124,8 +118,6 @@ dsh plugin --profile web add "$PWD/packages/dsh-geo-radar"
 - `geo_start_task` refuses REAL tasks unless `confirmReal=true`.
 - Prefer MOCK for workflow tests; MCP never invents metrics or results.
 
-> MCP runs locally over stdio; no hosted server is required. Remote HTTP MCP needs separate deployment.
-
 ---
 
 ## Architecture
@@ -214,8 +206,6 @@ More: [docs/yuanbao-integration.md](docs/yuanbao-integration.md) · [docs/geo-an
 - [Prisma](https://www.prisma.io/), [PostgreSQL](https://www.postgresql.org/)
 - [Radix UI](https://www.radix-ui.com/), [Tailwind CSS](https://tailwindcss.com/), [Recharts](https://recharts.org/)
 - [Vitest](https://vitest.dev/), [Playwright](https://playwright.dev/)
-
-> GEO Radar is an independent open-source project, not affiliated with Tencent Cloud/Yuanbao Search; Yuanbao Search is an external data source.
 
 <div align="center">
 
