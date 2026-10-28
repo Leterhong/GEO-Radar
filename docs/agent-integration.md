@@ -134,12 +134,13 @@ MCP SMOKE PASSED
 | `geo_compare_rounds` | 两轮比较、页面增减、数据质量、波动 |
 | `geo_create_task` | 创建 QUEUED 任务（不调用搜索） |
 | `geo_start_task` | 启动任务；REAL 必须 `confirmReal=true` |
-| `geo_create_report` | 生成冻结报告 |
-| `geo_get_report` | 读取报告 |
+| `geo_create_report` | 生成冻结报告（仅 REAL 任务） |
+| `geo_get_report` | 读取报告（默认摘要 + 预览；`includeMarkdown=true` 返回全文） |
 
 ### 安全边界
 
 - MCP 不生成搜索结果或指标，全部来自 GEO Radar API。
+- Token 是 workspace 级凭证，当前拥有该 workspace 的读写权限；只放在可信 Agent 环境，不要提交到 Git。
 - `geo_create_task` 只创建任务，不调用元宝搜索。
 - `geo_start_task` 对 `REAL` 任务要求 `confirmReal=true`，避免 Agent 自行消耗额度。
 - 测试流程优先 `MOCK`。

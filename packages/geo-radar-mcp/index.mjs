@@ -297,7 +297,7 @@ server.registerTool(
 server.registerTool(
   "geo_create_report",
   {
-    description: "Generate a frozen evidence-centered report for a task, optionally comparing a baseline round.",
+    description: "Generate a frozen evidence-centered report for a REAL task, optionally comparing a baseline round. Mock tasks are rejected by the server.",
     inputSchema: { taskId: z.string(), compareTaskId: z.string().optional(), title: z.string().optional() },
   },
   async ({ taskId, compareTaskId, title }) => {
@@ -316,13 +316,24 @@ server.registerTool(
 server.registerTool(
   "geo_get_report",
   {
-    description: "Get a generated report by id.",
-    inputSchema: { reportId: z.string() },
+    description: "Get a generated report by id. Returns metadata plus a short markdown preview by default; set includeMarkdown=true for the full report.",
+    inputSchema: { reportId: z.string(), includeMarkdown: z.boolean().optional() },
   },
-  async ({ reportId }) => {
+  async ({ reportId, includeMarkdown = false }) => {
     try {
       const data = await api(`/api/reports/${encodeURIComponent(reportId)}`);
-      return text(data.report);
+      const report = data.report;
+      if (includeMarkdown) return text(report);
+      return text({
+        ...report,
+        markdown: undefined,
+        snapshot: undefined,
+        markdownPreview: report.markdown?.slice(0, 4000),
+        markdownOmitted: report.markdown
+          ? `${report.markdown.length} chars omitted; set includeMarkdown=true for the full report`
+          : undefined,
+        snapshotOmitted: report.snapshot ? "report snapshot omitted; set includeMarkdown=true for the full report" : undefined,
+      });
     } catch (e) {
       return errorResult(e);
     }

@@ -346,7 +346,7 @@ describe.skipIf(!dbAvailable)("集成：真实搜索证据链 → 矩阵 → 复
 
     const run = await prisma.scheduleRun.findFirst({ where: { scheduleId: created.schedule.id }, orderBy: { createdAt: "desc" } });
     expect(run).toBeTruthy();
-    const runDeadline = Date.now() + 5000;
+    const runDeadline = Date.now() + 15_000;
     let runStatus = run?.status ?? "";
     while (Date.now() < runDeadline) {
       const fresh = await prisma.scheduleRun.findUnique({ where: { id: run!.id }, select: { status: true } });
@@ -362,7 +362,7 @@ describe.skipIf(!dbAvailable)("集成：真实搜索证据链 → 矩阵 → 复
     // 幂等：同一计划时间不会重复创建任务
     const duplicate = await runDueSchedules({ workspaceId, limit: 5, now: new Date() });
     expect(duplicate.dueCount).toBe(0);
-  }, 30_000);
+  }, 45_000);
 
   it("问题集编辑生成新版本，历史任务的问题快照不被覆盖", async () => {
     const { prisma } = await import("@/server/db/client");

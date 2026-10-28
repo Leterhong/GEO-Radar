@@ -80,8 +80,8 @@ dsh plugin --profile web add "$PWD/packages/dsh-geo-radar"
 | `geo_compare_rounds` | two-round comparison and volatility |
 | `geo_create_task` | create a QUEUED task (does not call search) |
 | `geo_start_task` | start a task; REAL requires `confirmReal=true` |
-| `geo_create_report` | freeze an evidence report |
-| `geo_get_report` | read a generated report |
+| `geo_create_report` | freeze an evidence report (REAL tasks only) |
+| `geo_get_report` | read a report (metadata + preview; `includeMarkdown=true` for full) |
 
 ## Safe workflow
 

@@ -36,7 +36,7 @@ if (expiresDays !== undefined && (!Number.isInteger(expiresDays) || expiresDays 
 const prisma = new PrismaClient();
 const user = await prisma.user.findUnique({
   where: { email: email.trim().toLowerCase() },
-  include: { workspaceLinks: { include: { workspace: true }, take: 1 } },
+  include: { workspaceLinks: { include: { workspace: true }, orderBy: { joinedAt: "asc" }, take: 1 } },
 });
 if (!user) {
   console.error(`未找到账号: ${email}`);

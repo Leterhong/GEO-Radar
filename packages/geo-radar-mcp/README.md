@@ -52,8 +52,8 @@ node index.mjs
 | `geo_compare_rounds` | two-round comparison |
 | `geo_create_task` | create a QUEUED task |
 | `geo_start_task` | start a task; REAL needs `confirmReal=true` |
-| `geo_create_report` | generate a frozen report |
-| `geo_get_report` | read a report |
+| `geo_create_report` | generate a frozen report (REAL tasks only) |
+| `geo_get_report` | read a report (preview; `includeMarkdown=true` for full) |
 
 ## Safety
 

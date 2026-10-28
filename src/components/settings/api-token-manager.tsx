@@ -150,11 +150,9 @@ export function ApiTokenManager() {
                       <Badge variant="secondary" className="font-mono text-[10px]">
                         {token.prefix}…
                       </Badge>
-                      {token.scopes.map((scope) => (
-                        <Badge key={scope} variant="outline" className="text-[10px]">
-                          {scope}
-                        </Badge>
-                      ))}
+                      <Badge variant="outline" className="text-[10px]">
+                        workspace 级
+                      </Badge>
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {token.user.email} · 创建于 {formatDate(token.createdAt)}

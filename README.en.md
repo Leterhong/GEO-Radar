@@ -117,6 +117,7 @@ dsh plugin --profile web add "$PWD/packages/dsh-geo-radar"
 - `geo_create_task` only creates a QUEUED task; it does not search.
 - `geo_start_task` refuses REAL tasks unless `confirmReal=true`.
 - Prefer MOCK for workflow tests; MCP never invents metrics or results.
+- A token has workspace read/write access; keep it in trusted agent environments and never commit it.
 
 ---
 
@@ -167,7 +168,6 @@ Rule versions: `url-norm-v1`, `page-classify-v1`, `evidence-v2`, `geo-metrics-v2
 | [docs/agent-integration.md](docs/agent-integration.md) | Skill / MCP / DSH |
 | [docs/yuanbao-integration.md](docs/yuanbao-integration.md) | SearchPro integration |
 | [docs/deployment.md](docs/deployment.md) | deployment, auth cookies, scheduling |
-| [docs/testing.md](docs/testing.md) | testing |
 | [docs/article-geo-radar.md](docs/article-geo-radar.md) | case study |
 
 ---

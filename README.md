@@ -119,6 +119,7 @@ dsh plugin --profile web add "$PWD/packages/dsh-geo-radar"
 - `geo_create_task` 只创建 `QUEUED` 任务，不调用搜索。
 - `geo_start_task` 对 `REAL` 任务强制要求 `confirmReal=true`，避免 Agent 自行消耗额度。
 - 测试流程优先 `MOCK`；MCP 不伪造指标或搜索结果。
+- Token 拥有该 workspace 的读写权限；只放在可信 Agent 环境，不要提交到 Git。
 
 ---
 
@@ -169,7 +170,6 @@ Yuanbao SearchPro
 | [docs/agent-integration.md](docs/agent-integration.md) | Skill / MCP / DSH 接入 |
 | [docs/yuanbao-integration.md](docs/yuanbao-integration.md) | SearchPro 接入与错误处理 |
 | [docs/deployment.md](docs/deployment.md) | 部署、认证 Cookie、调度 |
-| [docs/testing.md](docs/testing.md) | 测试与验证 |
 | [docs/article-geo-radar.md](docs/article-geo-radar.md) | 实战文章 |
 
 ---
