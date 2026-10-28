@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/readme/hero.jpg" alt="GEO Radar — turn AI-search results into traceable brand evidence" width="100%" />
+<img src="https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/hero.jpg" alt="GEO Radar — turn AI-search results into traceable brand evidence" width="100%" />
 
 # GEO Radar
 
@@ -20,7 +20,7 @@ Turn real AI-search web results into traceable, recomputable and reviewable bran
 
 **[简体中文](README.md) · [English](README.en.md)**
 
-<img src="docs/assets/readme/demo.gif" alt="GEO Radar evidence detail: immutable raw layer, reviewable analysis layer" width="960" />
+<img src="https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/demo.gif" alt="GEO Radar evidence detail: immutable raw layer, reviewable analysis layer" width="960" />
 
 <sub>Evidence detail: Yuanbao raw result / RequestId and rule analysis / human review are stored separately.</sub>
 
@@ -113,25 +113,25 @@ Four non-negotiable principles:
 
 ### Brand question matrix
 
-[![Brand question matrix](docs/assets/readme/matrix.jpg)](docs/assets/readme/matrix.jpg)
+[![Brand question matrix](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/matrix.jpg)](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/matrix.jpg)
 
 > 10 questions × Yuanbao / Doubao / Kimi; failure, empty, not found and needs-review are distinct states.
 
 ### Task execution details
 
-[![Task execution details](docs/assets/readme/task.jpg)](docs/assets/readme/task.jpg)
+[![Task execution details](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/task.jpg)](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/task.jpg)
 
 > Every question has result count, duration and `RequestId`; real and Mock tasks are clearly labeled.
 
 ### Evidence detail
 
-[![Evidence detail](docs/assets/readme/evidence.jpg)](docs/assets/readme/evidence.jpg)
+[![Evidence detail](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/evidence.jpg)](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/evidence.jpg)
 
 > Raw Yuanbao response on top; rule analysis and human review below. The raw layer is immutable.
 
 ### Evidence-centered report
 
-[![Evidence-centered report](docs/assets/readme/report.jpg)](docs/assets/readme/report.jpg)
+[![Evidence-centered report](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/report.jpg)](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/report.jpg)
 
 > Reports freeze a snapshot; metrics include numerator/denominator, rule versions and representative evidence.
 
@@ -387,7 +387,7 @@ docs/                    architecture, data dictionary, API, deployment, evidenc
 
 ## Demo
 
-[![GEO Radar Yuanbao Search demo](docs/assets/readme/hero.jpg)](https://github.com/Leterhong/GEO-Radar/releases/download/v0.1.0/GEO-Radar-yuanbao-demo-1440p.mp4)
+[![GEO Radar Yuanbao Search demo](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/hero.jpg)](https://github.com/Leterhong/GEO-Radar/releases/download/v0.1.0/GEO-Radar-yuanbao-demo-1440p.mp4)
 
 **7 min 57 s · 1440p · real Yuanbao Search calls + full platform flow**
 
