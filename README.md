@@ -20,17 +20,11 @@
 
 [简体中文](README.md) · [English](README.en.md)
 
-<img src="https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/demo.gif" alt="GEO Radar 证据详情演示" width="900" />
-
-<sub>原始搜索结果不可变；页面分析、品牌匹配与人工复核在独立分析层。</sub>
-
 </div>
 
 ---
 
 > **一句话**：不生产“AI 可见度分数”，而是保存每一次真实搜索的原始结果，把页面变成证据，再计算指标、做矩阵、复测和报告。
-
-> **状态**：可演示原型。真实调用过腾讯云元宝搜索 SearchPro；接口和数据口径仍在迭代。
 
 ---
 
@@ -126,8 +120,6 @@ dsh plugin --profile web add "$PWD/packages/dsh-geo-radar"
 - `geo_start_task` 对 `REAL` 任务强制要求 `confirmReal=true`，避免 Agent 自行消耗额度。
 - 测试流程优先 `MOCK`；MCP 不伪造指标或搜索结果。
 
-> MCP 是本地 stdio 形态，不需要我们托管服务器。远程 HTTP MCP 需要单独部署。
-
 ---
 
 ## 架构
@@ -216,8 +208,6 @@ Response: Pages[] + RequestId + Version + Msg
 - [Prisma](https://www.prisma.io/)、[PostgreSQL](https://www.postgresql.org/)
 - [Radix UI](https://www.radix-ui.com/)、[Tailwind CSS](https://tailwindcss.com/)、[Recharts](https://recharts.org/)
 - [Vitest](https://vitest.dev/)、[Playwright](https://playwright.dev/)
-
-> GEO Radar 是独立开源项目，与腾讯云/元宝搜索无隶属关系；元宝搜索为其外部数据源。
 
 <div align="center">
 
