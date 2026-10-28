@@ -16,7 +16,7 @@ Turn real AI-search web results into traceable, recomputable and reviewable bran
 [![Live](https://img.shields.io/badge/live-site-0f766e)](https://leterhong.github.io/GEO-Radar/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-[Live Site](https://leterhong.github.io/GEO-Radar/) · [Quick start](#quick-start) · [Agent integration](#agent-integration-skill--mcp--dsh-plugin) · [Demo](#demo) · [Docs](#documentation)
+[Live Site](https://leterhong.github.io/GEO-Radar/) · [Deployment](docs/deployment.md) · [Agent integration](#agent-integration-skill--mcp--dsh-plugin) · [Docs](#documentation)
 
 [简体中文](README.md) · [English](README.en.md)
 
@@ -34,27 +34,23 @@ Turn real AI-search web results into traceable, recomputable and reviewable bran
 
 ---
 
----
-
 ## Quick links
 
 | Resource | URL |
 | --- | --- |
 | GitHub repository | https://github.com/Leterhong/GEO-Radar |
 | Live demo | https://leterhong.github.io/GEO-Radar/ |
-| Demo video (8 min) | https://github.com/Leterhong/GEO-Radar/releases/tag/v0.1.0 |
 | **Agent Skill** | https://github.com/Leterhong/GEO-Radar/tree/main/skills/geo-radar |
 | **MCP Server** | https://github.com/Leterhong/GEO-Radar/tree/main/packages/geo-radar-mcp |
 | **DSH plugin** | https://github.com/Leterhong/GEO-Radar/tree/main/packages/dsh-geo-radar |
+| Quick start / deployment | [docs/deployment.md](docs/deployment.md) · [.env.example](.env.example) |
 | Agent integration docs | https://github.com/Leterhong/GEO-Radar/blob/main/docs/agent-integration.md |
-
----
 
 ---
 
 ## Features
 
-**Yuanbao SearchPro**: real web results + `RequestId`; API Key encrypted with AES-256-GCM.
+- **Yuanbao SearchPro**: real web results + `RequestId`; API Key encrypted with AES-256-GCM.
 - **Page-level evidence**: URL normalization, explainable page classification, brand match basis, human review.
 - **Brand question matrix**: question × brand/competitor; found / not found / failed / empty / needs review.
 - **Immutable snapshots**: `COLLECTION` + `RECOMPUTE`; rule changes never rewrite history.
@@ -69,8 +65,6 @@ Two principles:
 | --- | --- |
 | Failure ≠ not found | failed / empty / not found / needs review are distinct |
 | Insufficient sample ≠ 0% | zero denominator or unconfigured official domain → “not computable” |
-
----
 
 ---
 
@@ -134,8 +128,6 @@ dsh plugin --profile web add "$PWD/packages/dsh-geo-radar"
 
 ---
 
----
-
 ## Architecture
 
 ```mermaid
@@ -173,65 +165,6 @@ Rule versions: `url-norm-v1`, `page-classify-v1`, `evidence-v2`, `geo-metrics-v2
 
 ---
 
----
-
-## Quick start
-
-### Docker (recommended)
-
-```bash
-git clone https://github.com/Leterhong/GEO-Radar.git
-cd GEO-Radar
-npm run docker:up
-# http://localhost:3000
-```
-
-The first run generates `.env.docker` with random secrets (never committed), builds and waits for health.
-
-```bash
-npm run docker:down
-npm run docker:logs
-```
-
-> Docker Desktop / Docker Engine + Compose v2 required. Port conflict: `APP_PORT=3300 POSTGRES_PORT=15433 npm run docker:up`.
-
-### Local development
-
-```bash
-npm ci
-cp .env.example .env.local
-npm run dev:db      # embedded PostgreSQL, primarily Windows
-npm run db:migrate
-npm run dev
-```
-
-Required env:
-
-| Variable | Description |
-| --- | --- |
-| `DATABASE_URL` | PostgreSQL connection string |
-| `AUTH_SECRET` | session signing secret, 32 random bytes |
-| `CREDENTIAL_ENCRYPTION_KEY` | 32-byte hex AES-256-GCM key |
-| `YUANBAO_SEARCH_ENABLED` | `true` enables real Yuanbao calls |
-
-See [.env.example](.env.example) and [docs/deployment.md](docs/deployment.md).
-
----
-
----
-
-## Demo
-
-[![GEO Radar demo](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/hero.jpg)](https://github.com/Leterhong/GEO-Radar/releases/download/v0.1.0/GEO-Radar-yuanbao-demo-1440p.mp4)
-
-**7 min 57 s · 1440p · real Yuanbao calls + full flow**
-
-[▶ Watch](https://github.com/Leterhong/GEO-Radar/releases/download/v0.1.0/GEO-Radar-yuanbao-demo-1440p.mp4) · [Subtitles](docs/assets/video/georadar-yuanbao-tour.srt)
-
----
-
----
-
 ## Documentation
 
 | Document | Content |
@@ -247,13 +180,9 @@ See [.env.example](.env.example) and [docs/deployment.md](docs/deployment.md).
 
 ---
 
----
-
 ## Contributing
 
 Issues and PRs are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md); report security issues via [SECURITY.md](SECURITY.md), not a public issue.
-
----
 
 ---
 
@@ -268,28 +197,7 @@ Body: { Query, ... }
 Response: Pages[] + RequestId + Version + Msg
 ```
 
-- API Key accepted server-side only and encrypted; never returned in full
-- Request layer handles timeout, retry, cancel and HTTP/business errors
-- Every result keeps `RequestId`; evidence and reports point back to the request
-- Real tasks require `YUANBAO_SEARCH_ENABLED=true` and a passed connection test
-- Mock is explicitly isolated from real metrics and formal reports
-
-Real sample (10 questions, second retest):
-
-| Metric | Result |
-| --- | --- |
-| Successful questions / results | 10 / 10, 98 |
-| Per-request duration | 81–385ms (this sample) |
-| Brand mention question rate | 6 / 10 = 60% |
-| Official site coverage | 0 / 10 = 0% |
-| Third-party page coverage | 6 / 10 = 60% |
-| Competitor mention | Doubao 70% / Kimi 70% |
-
-> Official 0% means “official domain configured, but none of the 98 results came from it” — not the placeholder for an unconfigured domain.
-
 More: [docs/yuanbao-integration.md](docs/yuanbao-integration.md) · [docs/geo-analysis.md](docs/geo-analysis.md)
-
----
 
 ---
 
@@ -297,4 +205,20 @@ More: [docs/yuanbao-integration.md](docs/yuanbao-integration.md) · [docs/geo-an
 
 [MIT](LICENSE) © 2026 Leterhong
 
+---
+
+## Acknowledgements
+
+- [Tencent Cloud Yuanbao Search](https://cloud.tencent.com/product/wsa) — real web retrieval
+- [Next.js](https://nextjs.org/), [React](https://react.dev/), [TypeScript](https://www.typescriptlang.org/)
+- [Prisma](https://www.prisma.io/), [PostgreSQL](https://www.postgresql.org/)
+- [Radix UI](https://www.radix-ui.com/), [Tailwind CSS](https://tailwindcss.com/), [Recharts](https://recharts.org/)
+- [Vitest](https://vitest.dev/), [Playwright](https://playwright.dev/)
+
 > GEO Radar is an independent open-source project, not affiliated with Tencent Cloud/Yuanbao Search; Yuanbao Search is an external data source.
+
+<div align="center">
+
+**If this project helps you, please Star ⭐**
+
+</div>
