@@ -12,7 +12,6 @@ Turn real AI-search web results into traceable, recomputable and reviewable bran
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![Prisma](https://img.shields.io/badge/Prisma-5.22-2D3748?logo=prisma)](https://www.prisma.io/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql)](https://www.postgresql.org/)
-[![Tests](https://img.shields.io/badge/tests-122%20passing-brightgreen)](#testing)
 [![CI](https://github.com/Leterhong/GEO-Radar/actions/workflows/ci.yml/badge.svg)](https://github.com/Leterhong/GEO-Radar/actions/workflows/ci.yml)
 [![Live](https://img.shields.io/badge/live-site-0f766e)](https://leterhong.github.io/GEO-Radar/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -33,6 +32,10 @@ Turn real AI-search web results into traceable, recomputable and reviewable bran
 
 > **Status**: prototype. Real calls to Tencent Cloud Yuanbao SearchPro have been made; APIs and definitions are still evolving.
 
+---
+
+---
+
 ## Quick links
 
 | Resource | URL |
@@ -47,9 +50,11 @@ Turn real AI-search web results into traceable, recomputable and reviewable bran
 
 ---
 
+---
+
 ## Features
 
-- **Yuanbao SearchPro**: real web results + `RequestId`; API Key encrypted with AES-256-GCM.
+**Yuanbao SearchPro**: real web results + `RequestId`; API Key encrypted with AES-256-GCM.
 - **Page-level evidence**: URL normalization, explainable page classification, brand match basis, human review.
 - **Brand question matrix**: question × brand/competitor; found / not found / failed / empty / needs review.
 - **Immutable snapshots**: `COLLECTION` + `RECOMPUTE`; rule changes never rewrite history.
@@ -64,6 +69,8 @@ Two principles:
 | --- | --- |
 | Failure ≠ not found | failed / empty / not found / needs review are distinct |
 | Insufficient sample ≠ 0% | zero denominator or unconfigured official domain → “not computable” |
+
+---
 
 ---
 
@@ -127,6 +134,8 @@ dsh plugin --profile web add "$PWD/packages/dsh-geo-radar"
 
 ---
 
+---
+
 ## Architecture
 
 ```mermaid
@@ -163,38 +172,6 @@ Yuanbao SearchPro
 Rule versions: `url-norm-v1`, `page-classify-v1`, `evidence-v2`, `geo-metrics-v2`, `snapshot-v1`, `comparison-v1`, `search-report-v1`.
 
 ---
-
-## Yuanbao Search
-
-GEO Radar has one external search source: **Tencent Cloud Yuanbao SearchPro**.
-
-```text
-POST https://api.wsa.cloud.tencent.com/SearchPro
-Authorization: Bearer <Service API Key>
-Body: { Query, ... }
-Response: Pages[] + RequestId + Version + Msg
-```
-
-- API Key accepted server-side only and encrypted; never returned in full
-- Request layer handles timeout, retry, cancel and HTTP/business errors
-- Every result keeps `RequestId`; evidence and reports point back to the request
-- Real tasks require `YUANBAO_SEARCH_ENABLED=true` and a passed connection test
-- Mock is explicitly isolated from real metrics and formal reports
-
-Real sample (10 questions, second retest):
-
-| Metric | Result |
-| --- | --- |
-| Successful questions / results | 10 / 10, 98 |
-| Per-request duration | 81–385ms (this sample) |
-| Brand mention question rate | 6 / 10 = 60% |
-| Official site coverage | 0 / 10 = 0% |
-| Third-party page coverage | 6 / 10 = 60% |
-| Competitor mention | Doubao 70% / Kimi 70% |
-
-> Official 0% means “official domain configured, but none of the 98 results came from it” — not the placeholder for an unconfigured domain.
-
-More: [docs/yuanbao-integration.md](docs/yuanbao-integration.md) · [docs/geo-analysis.md](docs/geo-analysis.md)
 
 ---
 
@@ -241,43 +218,6 @@ See [.env.example](.env.example) and [docs/deployment.md](docs/deployment.md).
 
 ---
 
-## Commands
-
-```bash
-npm run dev                 # dev server
-npm run build               # production build
-npm test                    # 122 tests
-npm run docker:up           # one-command Docker demo
-npm run token:create -- <email> "<name>"  # create MCP token
-npm run smoke:mcp           # verify MCP
-npm run dsh:install         # generate DSH plugin patch
-npm run scheduler           # standalone scheduler
-```
-
-More: [docs/testing.md](docs/testing.md) · [docs/deployment.md](docs/deployment.md)
-
----
-
-## Testing
-
-- **122 Vitest tests** (7 files): evidence chain, matrix, snapshots, comparison, reports, scheduling, Yuanbao provider, permissions, tokens, integration
-- **58 end-to-end smoke checks**
-- **42 evidence-chain smoke checks**
-- **Playwright UI checks** + browser console errors
-- GitHub Actions: typecheck / lint / test / build + **Docker Compose one-click**
-
-```bash
-npm run typecheck && npm run lint && npm test && npm run build
-```
-
----
-
-## Screenshots
-
-| Brand question matrix | Evidence-centered report |
-| --- | --- |
-| [![Matrix](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/matrix.jpg)](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/matrix.jpg) | [![Report](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/report.jpg)](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/report.jpg) |
-
 ---
 
 ## Demo
@@ -289,21 +229,6 @@ npm run typecheck && npm run lint && npm test && npm run build
 [▶ Watch](https://github.com/Leterhong/GEO-Radar/releases/download/v0.1.0/GEO-Radar-yuanbao-demo-1440p.mp4) · [Subtitles](docs/assets/video/georadar-yuanbao-tour.srt)
 
 ---
-
-## Project structure
-
-```text
-src/app/              Next.js pages + API routes
-src/server/           search, evidence, matrix, snapshot, comparison, report, schedule
-src/lib/providers/    Yuanbao SearchPro / Mock provider
-prisma/               schema + migrations
-packages/geo-radar-mcp/   MCP server (12 tools)
-packages/dsh-geo-radar/   DSH plugin
-skills/geo-radar/         Agent Skill
-scripts/              smoke, token, Docker, video tools
-tests/                unit / integration / Playwright
-docs/                 architecture, data dictionary, API, deployment, agent integration
-```
 
 ---
 
@@ -322,30 +247,51 @@ docs/                 architecture, data dictionary, API, deployment, agent inte
 
 ---
 
-## Known limitations
-
-- PDF export not implemented (HTML can be printed to PDF).
-- Task execution runs in the web process; a restart interrupts running tasks.
-- Scheduling requires external cron / `npm run scheduler`.
-- Page classification is heuristic; long-tail sites may be OTHER/UNKNOWN.
-- Volatility is an observed range, not a confidence interval.
-- Real API stress testing, Redis rate limiting and a separate worker are still roadmap.
-- Legacy tasks may lack COLLECTION snapshots; comparison labels the live fallback.
-
-## Roadmap
-
-- [ ] PDF report export
-- [ ] Separate task worker
-- [ ] Redis rate limiting and queue
-- [ ] More search providers
-- [ ] Page-classification rule packs
-- [ ] Remote HTTP MCP
-
 ---
 
 ## Contributing
 
 Issues and PRs are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md); report security issues via [SECURITY.md](SECURITY.md), not a public issue.
+
+---
+
+---
+
+## Yuanbao Search
+
+GEO Radar has one external search source: **Tencent Cloud Yuanbao SearchPro**.
+
+```text
+POST https://api.wsa.cloud.tencent.com/SearchPro
+Authorization: Bearer <Service API Key>
+Body: { Query, ... }
+Response: Pages[] + RequestId + Version + Msg
+```
+
+- API Key accepted server-side only and encrypted; never returned in full
+- Request layer handles timeout, retry, cancel and HTTP/business errors
+- Every result keeps `RequestId`; evidence and reports point back to the request
+- Real tasks require `YUANBAO_SEARCH_ENABLED=true` and a passed connection test
+- Mock is explicitly isolated from real metrics and formal reports
+
+Real sample (10 questions, second retest):
+
+| Metric | Result |
+| --- | --- |
+| Successful questions / results | 10 / 10, 98 |
+| Per-request duration | 81–385ms (this sample) |
+| Brand mention question rate | 6 / 10 = 60% |
+| Official site coverage | 0 / 10 = 0% |
+| Third-party page coverage | 6 / 10 = 60% |
+| Competitor mention | Doubao 70% / Kimi 70% |
+
+> Official 0% means “official domain configured, but none of the 98 results came from it” — not the placeholder for an unconfigured domain.
+
+More: [docs/yuanbao-integration.md](docs/yuanbao-integration.md) · [docs/geo-analysis.md](docs/geo-analysis.md)
+
+---
+
+---
 
 ## License
 
