@@ -12,7 +12,6 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![Prisma](https://img.shields.io/badge/Prisma-5.22-2D3748?logo=prisma)](https://www.prisma.io/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql)](https://www.postgresql.org/)
-[![Tests](https://img.shields.io/badge/tests-122%20passing-brightgreen)](#测试)
 [![CI](https://github.com/Leterhong/GEO-Radar/actions/workflows/ci.yml/badge.svg)](https://github.com/Leterhong/GEO-Radar/actions/workflows/ci.yml)
 [![Live](https://img.shields.io/badge/live-site-0f766e)](https://leterhong.github.io/GEO-Radar/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -33,6 +32,10 @@
 
 > **状态**：可演示原型。真实调用过腾讯云元宝搜索 SearchPro；接口和数据口径仍在迭代。
 
+---
+
+---
+
 ## 快速入口
 
 | 入口 | 地址 |
@@ -47,9 +50,11 @@
 
 ---
 
+---
+
 ## 核心能力
 
-- **元宝 SearchPro 接入**：真实网页结果 + `RequestId`，API Key 服务端 AES-256-GCM 加密。
+**元宝 SearchPro 接入**：真实网页结果 + `RequestId`，API Key 服务端 AES-256-GCM 加密。
 - **页面级证据链**：URL 规范化、可解释页面分类、品牌匹配依据、人工复核历史；原始层不覆盖。
 - **品牌问题矩阵**：问题 × 品牌/竞品；已发现 / 未发现 / 失败 / 空结果 / 待复核分开。
 - **不可变快照**：`COLLECTION` + `RECOMPUTE`；历史不被规则更新改写。
@@ -64,6 +69,8 @@
 | --- | --- |
 | 失败 ≠ 未发现 | 失败、空结果、未发现、待复核是不同状态 |
 | 样本不足 ≠ 0% | 分母为 0 或未配置官网时显示「不可计算」，不显示 0% |
+
+---
 
 ---
 
@@ -129,6 +136,8 @@ dsh plugin --profile web add "$PWD/packages/dsh-geo-radar"
 
 ---
 
+---
+
 ## 架构
 
 ```mermaid
@@ -165,38 +174,6 @@ Yuanbao SearchPro
 规则版本：`url-norm-v1`、`page-classify-v1`、`evidence-v2`、`geo-metrics-v2`、`snapshot-v1`、`comparison-v1`、`search-report-v1`。
 
 ---
-
-## 元宝搜索接入
-
-GEO Radar 只有一个外部搜索源：**腾讯云元宝搜索 SearchPro**。
-
-```text
-POST https://api.wsa.cloud.tencent.com/SearchPro
-Authorization: Bearer <Service API Key>
-Body: { Query, ... }
-Response: Pages[] + RequestId + Version + Msg
-```
-
-- API Key 只在服务端接收并加密；任何接口不返回完整 Key
-- 请求层统一处理超时、重试、取消、HTTP/业务错误
-- 每条结果保留 `RequestId`；证据与报告可回到具体请求
-- 真实任务需要 `YUANBAO_SEARCH_ENABLED=true` 并通过连接测试
-- Mock 任务显式隔离，不进入真实指标或正式报告
-
-本次真实样本（10 个问题，第二轮复测）：
-
-| 指标 | 结果 |
-| --- | --- |
-| 成功问题 / 返回结果 | 10 / 10，98 条 |
-| 单请求耗时 | 81–385ms（本次样本） |
-| 品牌提及问题率 | 6 / 10 = 60% |
-| 官网结果覆盖率 | 0 / 10 = 0% |
-| 第三方页面覆盖率 | 6 / 10 = 60% |
-| 竞品提及率 | 豆包 70% / Kimi 70% |
-
-> 官网 0% 是“已配置 `yuanbao.tencent.com`，但本次 98 条结果没有官网页面”，不是“未配置官网”的占位值。
-
-更多：[docs/yuanbao-integration.md](docs/yuanbao-integration.md) · [docs/geo-analysis.md](docs/geo-analysis.md)
 
 ---
 
@@ -243,43 +220,6 @@ npm run dev
 
 ---
 
-## 常用命令
-
-```bash
-npm run dev                 # 开发服务器
-npm run build               # 生产构建
-npm test                    # 122 个测试
-npm run docker:up           # Docker 一键启动
-npm run token:create -- <email> "<name>"  # 创建 MCP Token
-npm run smoke:mcp           # 验证 MCP
-npm run dsh:install         # 生成 DSH 插件补丁
-npm run scheduler           # 独立定时调度进程
-```
-
-完整命令：[docs/testing.md](docs/testing.md) · [docs/deployment.md](docs/deployment.md)
-
----
-
-## 测试
-
-- **122 个 Vitest 用例**（7 个文件）：证据链、矩阵、快照、比较、报告、调度、元宝 Provider、权限、Token、集成流程
-- **58 项端到端冒烟**：注册 → 任务 → 证据 → 报告 → 导出
-- **42 项证据链冒烟**：版本、人工复核、复测、比较、报告、定时、隔离
-- **Playwright UI 检查** + 浏览器 console 错误检查
-- GitHub Actions：Typecheck / Lint / Test / Build + **Docker Compose 一键启动**
-
-```bash
-npm run typecheck && npm run lint && npm test && npm run build
-```
-
----
-
-## 产品截图
-
-| 品牌问题矩阵 | 证据中心报告 |
-| --- | --- |
-| [![矩阵](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/matrix.jpg)](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/matrix.jpg) | [![报告](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/report.jpg)](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/report.jpg) |
-
 ---
 
 ## 演示视频
@@ -291,21 +231,6 @@ npm run typecheck && npm run lint && npm test && npm run build
 [▶ 观看](https://github.com/Leterhong/GEO-Radar/releases/download/v0.1.0/GEO-Radar-yuanbao-demo-1440p.mp4) · [字幕](docs/assets/video/georadar-yuanbao-tour.srt)
 
 ---
-
-## 项目结构
-
-```text
-src/app/              Next.js 页面 + API Routes
-src/server/           搜索执行、证据、矩阵、快照、比较、报告、调度
-src/lib/providers/    元宝 SearchPro / Mock Provider
-prisma/               Schema + migrations
-packages/geo-radar-mcp/   MCP Server（12 个工具）
-packages/dsh-geo-radar/   DSH 插件
-skills/geo-radar/         Agent Skill
-scripts/              冒烟、Token、Docker、视频工具
-tests/                单元 / 集成 / Playwright
-docs/                 架构、数据字典、API、部署、Agent 接入
-```
 
 ---
 
@@ -324,30 +249,51 @@ docs/                 架构、数据字典、API、部署、Agent 接入
 
 ---
 
-## 已知限制
-
-- PDF 导出未实现（HTML 可打印为 PDF）。
-- 任务执行在 Web 进程内，重启会中断运行中的任务。
-- 定时采集依赖外部 cron / `npm run scheduler`。
-- 页面分类是启发式规则，长尾站点可能落到 OTHER/UNKNOWN。
-- 波动分析只是观测区间，不是置信区间。
-- 真实 API 压测、Redis 限流、独立 worker 仍在 Roadmap。
-- 旧任务可能没有 COLLECTION 快照，比较会回退实时证据并明确标注。
-
-## Roadmap
-
-- [ ] PDF 报告导出
-- [ ] 独立任务 worker
-- [ ] Redis 限流与队列
-- [ ] 更多搜索 Provider
-- [ ] 页面分类规则包
-- [ ] 远程 HTTP MCP
-
 ---
 
 ## Contributing
 
 欢迎 issue / PR。开始前阅读 [CONTRIBUTING.md](CONTRIBUTING.md)；安全问题按 [SECURITY.md](SECURITY.md) 私下报告。
+
+---
+
+---
+
+## 元宝搜索接入
+
+GEO Radar 只有一个外部搜索源：**腾讯云元宝搜索 SearchPro**。
+
+```text
+POST https://api.wsa.cloud.tencent.com/SearchPro
+Authorization: Bearer <Service API Key>
+Body: { Query, ... }
+Response: Pages[] + RequestId + Version + Msg
+```
+
+- API Key 只在服务端接收并加密；任何接口不返回完整 Key
+- 请求层统一处理超时、重试、取消、HTTP/业务错误
+- 每条结果保留 `RequestId`；证据与报告可回到具体请求
+- 真实任务需要 `YUANBAO_SEARCH_ENABLED=true` 并通过连接测试
+- Mock 任务显式隔离，不进入真实指标或正式报告
+
+本次真实样本（10 个问题，第二轮复测）：
+
+| 指标 | 结果 |
+| --- | --- |
+| 成功问题 / 返回结果 | 10 / 10，98 条 |
+| 单请求耗时 | 81–385ms（本次样本） |
+| 品牌提及问题率 | 6 / 10 = 60% |
+| 官网结果覆盖率 | 0 / 10 = 0% |
+| 第三方页面覆盖率 | 6 / 10 = 60% |
+| 竞品提及率 | 豆包 70% / Kimi 70% |
+
+> 官网 0% 是“已配置 `yuanbao.tencent.com`，但本次 98 条结果没有官网页面”，不是“未配置官网”的占位值。
+
+更多：[docs/yuanbao-integration.md](docs/yuanbao-integration.md) · [docs/geo-analysis.md](docs/geo-analysis.md)
+
+---
+
+---
 
 ## License
 
