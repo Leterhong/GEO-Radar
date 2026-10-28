@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/readme/hero.jpg" alt="GEO Radar — 把 AI 搜索网页结果变成可追溯的品牌证据" width="100%" />
+<img src="https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/hero.jpg" alt="GEO Radar — 把 AI 搜索网页结果变成可追溯的品牌证据" width="100%" />
 
 # GEO Radar
 
@@ -20,7 +20,7 @@
 
 **[简体中文](README.md) · [English](README.en.md)**
 
-<img src="docs/assets/readme/demo.gif" alt="GEO Radar 证据详情演示：原始层不可变，分析层可复核" width="960" />
+<img src="https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/demo.gif" alt="GEO Radar 证据详情演示：原始层不可变，分析层可复核" width="960" />
 
 <sub>证据详情：元宝搜索原始结果 / RequestId 与规则分析、人工复核分层保存</sub>
 
@@ -113,25 +113,25 @@
 
 ### 品牌问题矩阵
 
-[![品牌问题矩阵](docs/assets/readme/matrix.jpg)](docs/assets/readme/matrix.jpg)
+[![品牌问题矩阵](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/matrix.jpg)](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/matrix.jpg)
 
 > 10 个问题 × 元宝 / 豆包 / Kimi；失败、空结果、未发现、待复核是不同状态。
 
 ### 任务执行明细
 
-[![任务执行明细](docs/assets/readme/task.jpg)](docs/assets/readme/task.jpg)
+[![任务执行明细](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/task.jpg)](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/task.jpg)
 
 > 每条问题都有结果数、耗时、`RequestId`；真实与 Mock 在标签上明确区分。
 
 ### 证据详情
 
-[![证据详情](docs/assets/readme/evidence.jpg)](docs/assets/readme/evidence.jpg)
+[![证据详情](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/evidence.jpg)](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/evidence.jpg)
 
 > 上层是元宝搜索原始返回，下层是规则分析和人工复核；原始层不可变。
 
 ### 证据中心报告
 
-[![证据中心报告](docs/assets/readme/report.jpg)](docs/assets/readme/report.jpg)
+[![证据中心报告](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/report.jpg)](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/report.jpg)
 
 > 报告保存生成时快照；指标带分子/分母、规则版本和代表证据。
 
@@ -408,7 +408,7 @@ docs/                    架构、数据字典、API、部署、证据链、案�
 
 ## 演示视频
 
-[![GEO Radar 元宝搜索实战演示](docs/assets/readme/hero.jpg)](https://github.com/Leterhong/GEO-Radar/releases/download/v0.1.0/GEO-Radar-yuanbao-demo-1440p.mp4)
+[![GEO Radar 元宝搜索实战演示](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/hero.jpg)](https://github.com/Leterhong/GEO-Radar/releases/download/v0.1.0/GEO-Radar-yuanbao-demo-1440p.mp4)
 
 **7 分 57 秒 · 1440p · 真实元宝搜索调用 + 平台完整流程**
 
