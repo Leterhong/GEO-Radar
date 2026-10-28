@@ -38,6 +38,42 @@
 
 建议放在 **6.3 指标之后、6.4 之前**。文章里已经留了视频说明段落；上传视频号后把卡片插在 6.3 末尾即可。
 
+## 仓库 / Skill / MCP / DSH 链接位置
+
+**不要把四个链接全堆在开头。** 开头只放一个“代码 + 演示”入口，读者先看冲突和结果；等讲完架构/数据分层后，再放 Agent 三件套。
+
+推荐结构：
+
+1. **开头导语后（只放仓库 + 视频）**
+
+```text
+代码与完整演示：
+https://github.com/Leterhong/GEO-Radar
+```
+
+2. **第 5 章“关键设计”之后（放 Skill / MCP / DSH）**
+
+```text
+给 Agent 用：
+- Skill：https://github.com/Leterhong/GEO-Radar/tree/main/skills/geo-radar
+- MCP：https://github.com/Leterhong/GEO-Radar/tree/main/packages/geo-radar-mcp
+- DSH 插件：https://github.com/Leterhong/GEO-Radar/tree/main/packages/dsh-geo-radar
+- 接入文档：https://github.com/Leterhong/GEO-Radar/blob/main/docs/agent-integration.md
+```
+
+3. **文末/附录（统一资源区）**
+
+```text
+GitHub：https://github.com/Leterhong/GEO-Radar
+Live Demo：https://leterhong.github.io/GEO-Radar/
+演示视频：https://github.com/Leterhong/GEO-Radar/releases/tag/v0.1.0
+Skill：https://github.com/Leterhong/GEO-Radar/tree/main/skills/geo-radar
+MCP：https://github.com/Leterhong/GEO-Radar/tree/main/packages/geo-radar-mcp
+DSH：https://github.com/Leterhong/GEO-Radar/tree/main/packages/dsh-geo-radar
+```
+
+一句话理由：开头是“为什么值得读”，中段是“怎么实现”，结尾才是“去哪里拿”。四个链接一起放开头，会像广告，也会打断读者进入真实数据的节奏。
+
 ## 提交前检查
 
 - [ ] CSDN 标题以 `【元宝搜索开发者征文大赛】` 开头
