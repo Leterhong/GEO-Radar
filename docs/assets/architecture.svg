@@ -1,0 +1,177 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 700" width="1120" height="700" font-family="'PingFang SC','Microsoft YaHei','Helvetica Neue',Arial,sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8C9AB0"/>
+    </marker>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4677E8"/>
+    </marker>
+    <marker id="arrowMint" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#37B99A"/>
+    </marker>
+    <style>
+      .title { font-size: 15px; font-weight: 600; fill: #172033; }
+      .sub { font-size: 12px; fill: #667085; }
+      .tiny { font-size: 11px; fill: #98A2B3; }
+      .label { font-size: 12px; fill: #344054; }
+      .tagname { font-size: 11px; fill: #315FC7; font-weight: 600; }
+      .card { fill: #FFFFFF; stroke: #E6EAF0; stroke-width: 1.2; }
+      .zone { fill: #F8FAFD; stroke: #E6EAF0; stroke-width: 1; stroke-dasharray: 5 4; }
+      .arrowline { stroke: #8C9AB0; stroke-width: 1.6; fill: none; }
+      .arrowblue { stroke: #4677E8; stroke-width: 1.8; fill: none; }
+      .arrowmint { stroke: #37B99A; stroke-width: 1.8; fill: none; }
+    </style>
+  </defs>
+
+  <rect width="1120" height="700" fill="#F7F9FC"/>
+
+  <!-- 顶部标题 -->
+  <text x="40" y="46" class="title" style="font-size:18px">GEO Radar 系统架构</text>
+  <text x="40" y="68" class="sub">Next.js 14 App Router · PostgreSQL + Prisma · 元宝 SearchPro（服务 API Key）· OpenAI 兼容模型</text>
+
+  <!-- 1. 浏览器层 -->
+  <rect x="40" y="92" width="1040" height="96" rx="14" class="card"/>
+  <text x="60" y="118" class="tagname">① 浏览器端（React Client Components）</text>
+  <g>
+    <rect x="60" y="130" width="188" height="42" rx="9" fill="#EDF4FF" stroke="#D7E5FF"/>
+    <text x="76" y="148" class="label">对话工作台 · 三模式</text>
+    <text x="76" y="164" class="tiny">搜索问答 / 搜索证据 / GEO 分析</text>
+
+    <rect x="264" y="130" width="160" height="42" rx="9" fill="#EDF4FF" stroke="#D7E5FF"/>
+    <text x="280" y="148" class="label">GEO 分析</text>
+    <text x="280" y="164" class="tiny">指标卡 · 分母 · 公式版本</text>
+
+    <rect x="440" y="130" width="160" height="42" rx="9" fill="#EDF4FF" stroke="#D7E5FF"/>
+    <text x="456" y="148" class="label">证据库</text>
+    <text x="456" y="164" class="tiny">筛选 · 复核 · 标签</text>
+
+    <rect x="616" y="130" width="150" height="42" rx="9" fill="#EDF4FF" stroke="#D7E5FF"/>
+    <text x="632" y="148" class="label">分析报告</text>
+    <text x="632" y="164" class="tiny">快照 · MD / CSV 导出</text>
+
+    <rect x="782" y="130" width="150" height="42" rx="9" fill="#EDF4FF" stroke="#D7E5FF"/>
+    <text x="798" y="148" class="label">任务与用量</text>
+    <text x="798" y="164" class="tiny">真实调用 · 已知 Token</text>
+
+    <rect x="948" y="130" width="112" height="42" rx="9" fill="#F1F5F9" stroke="#E6EAF0"/>
+    <text x="962" y="148" class="label">数据大屏</text>
+    <text x="962" y="164" class="tiny">只读历史数据</text>
+  </g>
+
+  <!-- 箭头 1→2 -->
+  <line x1="560" y1="188" x2="560" y2="222" class="arrowline" marker-end="url(#arrow)"/>
+  <text x="576" y="211" class="tiny">同源 fetch（不携带 API Key）</text>
+
+  <!-- 2. API 层 -->
+  <rect x="40" y="222" width="1040" height="92" rx="14" class="card"/>
+  <text x="60" y="248" class="tagname">② 服务端 Route Handlers（src/app/api）</text>
+  <g>
+    <rect x="60" y="260" width="240" height="40" rx="9" fill="#F3F0FF" stroke="#E4DEFB"/>
+    <text x="76" y="278" class="label">withAuth · 工作空间归属校验</text>
+    <text x="76" y="293" class="tiny">跨空间一律 404，不泄露存在性</text>
+
+    <rect x="316" y="260" width="220" height="40" rx="9" fill="#F3F0FF" stroke="#E4DEFB"/>
+    <text x="332" y="278" class="label">Zod 参数校验 + 限流</text>
+    <text x="332" y="293" class="tiny">登录 / 连接测试 / 导入</text>
+
+    <rect x="552" y="260" width="250" height="40" rx="9" fill="#F3F0FF" stroke="#E4DEFB"/>
+    <text x="568" y="278" class="label">统一错误包与审计日志</text>
+    <text x="568" y="293" class="tiny">密钥脱敏后写日志</text>
+
+    <rect x="818" y="260" width="242" height="40" rx="9" fill="#F3F0FF" stroke="#E4DEFB"/>
+    <text x="834" y="278" class="label">导出接口</text>
+    <text x="834" y="293" class="tiny">证据 CSV / 报告 MD + 指标 CSV</text>
+  </g>
+
+  <!-- 箭头 2→3 -->
+  <line x1="560" y1="314" x2="560" y2="348" class="arrowline" marker-end="url(#arrow)"/>
+  <text x="576" y="337" class="tiny">服务层调用（业务规则集中）</text>
+
+  <!-- 3. 服务层 -->
+  <rect x="40" y="348" width="700" height="196" rx="14" class="card"/>
+  <text x="60" y="374" class="tagname">③ 业务服务层（src/server/services）</text>
+  <g>
+    <rect x="60" y="388" width="200" height="62" rx="9" fill="#EAF9FC" stroke="#D3EFF4"/>
+    <text x="74" y="406" class="label">SearchExecution</text>
+    <text x="74" y="422" class="tiny">任务状态机 · 并发/超时</text>
+    <text x="74" y="438" class="tiny">有上限退避重试 · 取消</text>
+
+    <rect x="274" y="388" width="200" height="62" rx="9" fill="#EAF9FC" stroke="#D3EFF4"/>
+    <text x="288" y="406" class="label">ConversationOrchestrator</text>
+    <text x="288" y="422" class="tiny">三模式分派 · 引用校验</text>
+    <text x="288" y="438" class="tiny">来源编号 ↔ 真实结果</text>
+
+    <rect x="488" y="388" width="230" height="62" rx="9" fill="#E8F8F2" stroke="#CBEADE"/>
+    <text x="502" y="406" class="label">MetricsEngine（纯函数）</text>
+    <text x="502" y="422" class="tiny">提及率 / 引用率 / 竞品</text>
+    <text x="502" y="438" class="tiny">分子 · 分母 · 公式版本 v1</text>
+
+    <rect x="60" y="462" width="200" height="62" rx="9" fill="#E8F8F2" stroke="#CBEADE"/>
+    <text x="74" y="480" class="label">ReportService</text>
+    <text x="74" y="496" class="tiny">快照 · Markdown 渲染</text>
+    <text x="74" y="512" class="tiny">指标 CSV（含口径）</text>
+
+    <rect x="274" y="462" width="200" height="62" rx="9" fill="#FFF8E8" stroke="#F5E3C0"/>
+    <text x="288" y="480" class="label">CredentialService</text>
+    <text x="288" y="496" class="tiny">AES-256-GCM 加密存储</text>
+    <text x="288" y="512" class="tiny">仅返回掩码 · 真实连接测试</text>
+
+    <rect x="488" y="462" width="230" height="62" rx="9" fill="#FFF8E8" stroke="#F5E3C0"/>
+    <text x="502" y="480" class="label">UsageService</text>
+    <text x="502" y="496" class="tiny">只记真实调用</text>
+    <text x="502" y="512" class="tiny">费用未知时不估算</text>
+  </g>
+
+  <!-- 外部依赖 -->
+  <rect x="768" y="348" width="312" height="196" rx="14" class="zone"/>
+  <text x="788" y="374" class="tagname">④ 外部供应商（仅服务端访问）</text>
+
+  <rect x="788" y="388" width="272" height="70" rx="9" fill="#FFFFFF" stroke="#D7E5FF"/>
+  <text x="802" y="407" class="label">元宝 SearchPro</text>
+  <text x="802" y="423" class="tiny">POST api.wsa.cloud.tencent.com/SearchPro</text>
+  <text x="802" y="439" class="tiny">Authorization: Bearer &lt;API Key&gt;</text>
+  <text x="802" y="453" class="tiny">业务错误也以 HTTP 200 包裹返回</text>
+
+  <rect x="788" y="470" width="272" height="54" rx="9" fill="#FFFFFF" stroke="#E4DEFB"/>
+  <text x="802" y="489" class="label">大模型（OpenAI 兼容）</text>
+  <text x="802" y="506" class="tiny">仅用于解读与写作，不产生指标数值</text>
+
+  <!-- 服务层 → 外部 -->
+  <line x1="740" y1="422" x2="786" y2="422" class="arrowblue" marker-end="url(#arrowBlue)"/>
+  <line x1="740" y1="496" x2="786" y2="496" class="arrowblue" marker-end="url(#arrowBlue)"/>
+
+  <!-- 4. 数据层 -->
+  <rect x="40" y="566" width="1040" height="96" rx="14" class="card"/>
+  <text x="60" y="592" class="tagname">⑤ 持久化（PostgreSQL + Prisma）</text>
+  <g>
+    <rect x="60" y="602" width="150" height="44" rx="8" fill="#F8FAFD" stroke="#E6EAF0"/>
+    <text x="74" y="620" class="label">SearchTask / Item</text>
+    <text x="74" y="636" class="tiny">状态 · attempts · RequestId</text>
+
+    <rect x="222" y="602" width="168" height="44" rx="8" fill="#F8FAFD" stroke="#E6EAF0"/>
+    <text x="236" y="620" class="label">RawSearchResponse</text>
+    <text x="236" y="636" class="tiny">原始响应快照（≤256KB）</text>
+
+    <rect x="402" y="602" width="150" height="44" rx="8" fill="#F8FAFD" stroke="#E6EAF0"/>
+    <text x="416" y="620" class="label">Evidence</text>
+    <text x="416" y="636" class="tiny">标签 · 相关性 · 复核</text>
+
+    <rect x="564" y="602" width="190" height="44" rx="8" fill="#F8FAFD" stroke="#E6EAF0"/>
+    <text x="578" y="620" class="label">AnalysisTask / Metric</text>
+    <text x="578" y="636" class="tiny">数值 · 分子 · 分母 · 公式版本</text>
+
+    <rect x="766" y="602" width="130" height="44" rx="8" fill="#F8FAFD" stroke="#E6EAF0"/>
+    <text x="780" y="620" class="label">Report</text>
+    <text x="780" y="636" class="tiny">snapshot 快照</text>
+
+    <rect x="908" y="602" width="152" height="44" rx="8" fill="#F8FAFD" stroke="#E6EAF0"/>
+    <text x="922" y="620" class="label">UsageRecord</text>
+    <text x="922" y="636" class="tiny">真实调用与 Token</text>
+  </g>
+
+  <line x1="390" y1="544" x2="390" y2="564" class="arrowmint" marker-end="url(#arrowMint)"/>
+  <line x1="690" y1="544" x2="690" y2="564" class="arrowmint" marker-end="url(#arrowMint)"/>
+
+  <!-- 关键约束 -->
+  <text x="40" y="686" class="tiny">关键约束：API Key 仅服务端解密使用 · 用户确认后才发起真实搜索 · 页面加载/模式切换/刷新大屏均不触发调用 · 指标由确定性代码计算，模型只负责解读</text>
+</svg>

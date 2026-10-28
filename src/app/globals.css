@@ -1,0 +1,226 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * GEO Radar 设计 Token — 明亮浅色为主（Light SaaS + Soft Gradient + Clean Workspace）
+ * 语义变量直接使用十六进制值，Tailwind 侧以 var(--x) 映射，避免 HSL 换算误差。
+ * 深色变量仅作为可选能力保留，默认不启用。
+ */
+@layer base {
+  :root {
+    /* 背景体系 */
+    --background: #f7f9fc;
+    --foreground: #172033;
+    --card: #ffffff;
+    --card-foreground: #172033;
+    --popover: #ffffff;
+    --popover-foreground: #172033;
+    --surface-subtle: #f8fafd;
+    --surface-muted: #f1f5f9;
+
+    /* 品牌与交互 */
+    --primary: #4677e8;
+    --primary-foreground: #ffffff;
+    --primary-strong: #315fc7;
+    --primary-soft: #edf4ff;
+    --secondary: #f1f5f9;
+    --secondary-foreground: #344054;
+    --muted: #f8fafd;
+    --muted-foreground: #667085;
+    --accent: #edf4ff;
+    --accent-foreground: #315fc7;
+    --destructive: #d64545;
+    --destructive-foreground: #ffffff;
+
+    /* 状态色 */
+    --success: #16845b;
+    --success-soft: #e8f8f2;
+    --warning: #b7791f;
+    --warning-soft: #fff8e8;
+    --info: #356ae6;
+    --info-soft: #edf4ff;
+
+    /* 边框与输入 */
+    --border: #e6eaf0;
+    --border-strong: #d5e2fa;
+    --input: #e6eaf0;
+    --ring: #4677e8;
+
+    /* 图表 */
+    --chart-1: #4677e8;
+    --chart-2: #37b99a;
+    --chart-3: #9a8afb;
+    --chart-4: #f3c56a;
+    --chart-5: #62c7d5;
+
+    /* 文字层级（供直接引用） */
+    --text-primary: #172033;
+    --text-secondary: #344054;
+    --text-tertiary: #667085;
+    --text-quaternary: #98a2b3;
+    --text-disabled: #b7bfcc;
+
+    --radius: 0.75rem;
+  }
+
+  /* 可选深色能力：默认不启用，仅为保留主题切换可能性 */
+  .dark {
+    --background: #0f1319;
+    --foreground: #e8ecf3;
+    --card: #151a22;
+    --card-foreground: #e8ecf3;
+    --popover: #151a22;
+    --popover-foreground: #e8ecf3;
+    --surface-subtle: #12171e;
+    --surface-muted: #1b2129;
+    --primary: #6d95f0;
+    --primary-foreground: #0b1020;
+    --primary-strong: #4f7ae0;
+    --primary-soft: #1b2740;
+    --secondary: #1e242d;
+    --secondary-foreground: #dfe5ee;
+    --muted: #1a1f27;
+    --muted-foreground: #9aa4b4;
+    --accent: #1b2740;
+    --accent-foreground: #c7d7fb;
+    --destructive: #e35d5d;
+    --destructive-foreground: #0b1020;
+    --success: #34c08f;
+    --success-soft: #12251f;
+    --warning: #e2a745;
+    --warning-soft: #2a2113;
+    --info: #6d95f0;
+    --info-soft: #1b2740;
+    --border: #262d38;
+    --border-strong: #33415c;
+    --input: #262d38;
+    --ring: #6d95f0;
+    --chart-1: #6d95f0;
+    --chart-2: #34c08f;
+    --chart-3: #a89bfc;
+    --chart-4: #e2a745;
+    --chart-5: #6fc9d6;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "tnum" 1;
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply text-[color:var(--text-primary)];
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background-color: #d7e5ff;
+    color: #172033;
+  }
+
+  :focus-visible {
+    outline-color: var(--ring);
+  }
+
+  /* 更轻的滚动条，适配浅色界面 */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #cfd8e6 transparent;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* 文字层级工具类 */
+  .text-primary-strong {
+    color: var(--text-primary);
+  }
+  .text-secondary-soft {
+    color: var(--text-secondary);
+  }
+  .text-tertiary {
+    color: var(--text-tertiary);
+  }
+  .text-quaternary {
+    color: var(--text-quaternary);
+  }
+
+  /* 柔和渐变（A/B/C/D），仅用于欢迎区、少量重点卡片与提示区 */
+  .bg-gradient-a {
+    background-image: linear-gradient(135deg, #e8f1ff 0%, #f5f9ff 55%, #ffffff 100%);
+  }
+  .bg-gradient-b {
+    background-image: linear-gradient(135deg, #e9f0ff 0%, #f0ecff 100%);
+  }
+  .bg-gradient-c {
+    background-image: linear-gradient(135deg, #e4f7fb 0%, #e6f8f1 100%);
+  }
+  .bg-gradient-d {
+    background-image: linear-gradient(135deg, #fffaef 0%, #fff2e2 100%);
+  }
+
+  /* 轻量阴影：卡片默认几乎无阴影，仅悬浮层使用 */
+  .shadow-soft {
+    box-shadow:
+      0 1px 2px rgba(16, 24, 40, 0.04),
+      0 8px 24px -16px rgba(16, 24, 40, 0.12);
+  }
+  .shadow-float {
+    box-shadow:
+      0 1px 3px rgba(16, 24, 40, 0.06),
+      0 12px 32px -12px rgba(16, 24, 40, 0.18);
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    height: 8px;
+    width: 8px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background-color: #d7dfeb;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+
+  /* 轻量动效，尊重系统「减少动态效果」偏好 */
+  .animate-fade-in {
+    animation: georadar-fade-in 180ms ease-out both;
+  }
+}
+
+/* 仅动画透明度：避免覆盖弹窗/下拉使用 transform 实现的定位 */
+@keyframes georadar-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

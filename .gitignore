@@ -1,0 +1,42 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+
+# production
+build/
+dist/
+
+# env
+.env
+.env.local
+.env*.local
+
+# testing
+coverage/
+playwright-report/
+test-results/
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+*.tsbuildinfo
+
+# credentials — never commit real keys
+*.key
+.pgdata/
+
+# generated media / working assets (keep the contest demo + README screenshots)
+docs/assets/video/screens/
+docs/assets/video/yuanbao-screens/
+docs/assets/video/work/
+docs/assets/video/work-yuanbao/
+docs/assets/video/voice-*
+docs/assets/video/cover.png
+docs/assets/video/cover-yuanbao.png
+docs/assets/video/georadar-feature-tour.srt
+docs/assets/video/GEO-Radar-功能全景与使用演示-1440p.mp4
+docs/assets/verification/voice-test*

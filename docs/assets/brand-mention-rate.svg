@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 150" width="760" height="150" font-family="'PingFang SC','Microsoft YaHei','Helvetica Neue',Arial,sans-serif">
+  <rect width="760" height="150" fill="#FFFFFF"/>
+
+  <!-- 左侧：指标名 -->
+  <text x="36" y="86" font-size="19" fill="#172033">品牌提及率</text>
+
+  <!-- 等号 -->
+  <text x="168" y="86" font-size="22" fill="#172033">=</text>
+
+  <!-- 分数线 -->
+  <line x1="206" y1="80" x2="566" y2="80" stroke="#172033" stroke-width="1.6"/>
+
+  <!-- 分子 -->
+  <text x="386" y="62" font-size="16" fill="#172033" text-anchor="middle">至少出现一次目标品牌的有效问题数</text>
+
+  <!-- 分母 -->
+  <text x="386" y="108" font-size="16" fill="#172033" text-anchor="middle">有效问题总数</text>
+
+  <!-- × 100% -->
+  <text x="580" y="86" font-size="19" fill="#172033">× 100%</text>
+
+  <!-- 口径注释 -->
+  <text x="36" y="136" font-size="11.5" fill="#667085">分母只包含「真实模式 + 状态成功 + 至少一条可核查来源」的问题；失败、取消与未执行的问题单独统计，不计入分母。</text>
+</svg>

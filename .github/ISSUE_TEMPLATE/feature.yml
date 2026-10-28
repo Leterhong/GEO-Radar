@@ -1,0 +1,30 @@
+name: Feature request
+description: Suggest a feature or metric improvement
+title: "[feat] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: 谁在什么场景下遇到了什么问题？
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: 你希望怎么解决？是否影响指标口径/历史数据？
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: checkboxes
+    id: principles
+    attributes:
+      label: Project principles
+      options:
+        - label: This proposal keeps real and mock data separated.
+        - label: This proposal keeps metrics recomputable and evidence traceable.

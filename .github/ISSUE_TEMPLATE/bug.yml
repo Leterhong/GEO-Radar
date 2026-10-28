@@ -1,0 +1,36 @@
+name: Bug report
+description: Something is broken or produces misleading data
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: 描述现象、页面/接口、期望结果
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How to reproduce
+      description: 命令、任务 ID、问题文本、浏览器
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence / screenshots
+      description: 截图、RequestId、错误日志（不要贴 API Key）
+  - type: input
+    id: version
+    attributes:
+      label: Commit / version
+      placeholder: main@abc1234
+  - type: checkboxes
+    id: safe
+    attributes:
+      label: Safety
+      options:
+        - label: I removed secrets, customer data and unauthorized screenshots.
+          required: true

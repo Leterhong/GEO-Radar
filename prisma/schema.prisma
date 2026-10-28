@@ -1,0 +1,1059 @@
+// GEO Radar — Prisma Schema
+// 所有业务数据通过 workspaceId 隔离；敏感密钥仅以加密形式存储。
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum ProviderName {
+  YUANBAO
+  MOCK
+}
+
+enum CredentialStatus {
+  NOT_CONFIGURED
+  PENDING_VERIFICATION
+  CONNECTED
+  FAILED
+  DISABLED
+}
+
+enum ExecutionMode {
+  REAL
+  MOCK
+}
+
+enum TaskStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  PARTIAL_FAILED
+  FAILED
+  CANCELLED
+}
+
+enum ItemStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+  CANCELLED
+}
+
+enum MentionStatus {
+  PENDING_REVIEW
+  CONFIRMED_BRAND
+  CONFIRMED_COMPETITOR
+  IRRELEVANT
+  AMBIGUOUS
+}
+
+enum DetectionMethod {
+  RULE
+  MANUAL
+}
+
+enum EvidenceRelevance {
+  HIGH
+  MEDIUM
+  LOW
+  UNKNOWN
+}
+
+enum OptimizationStatus {
+  OPEN
+  IN_PROGRESS
+  DONE
+  DISMISSED
+}
+
+enum OptimizationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+/// 页面级证据分类（可解释规则产出；无法可靠识别时使用 UNKNOWN，不强行归类）
+enum PageType {
+  OFFICIAL_HOMEPAGE
+  PRODUCT_PAGE
+  DOCS_PAGE
+  BLOG_NEWS
+  THIRD_PARTY_MEDIA
+  ECOMMERCE_PAGE
+  COMMUNITY_FORUM
+  OTHER
+  UNKNOWN
+}
+
+/// 来源角色：官网 / 第三方 / 未知
+enum SourceRole {
+  OFFICIAL
+  THIRD_PARTY
+  UNKNOWN
+}
+
+/// 报告类型：分析任务报告 / 搜索证据报告 / 两轮对比报告
+enum ReportKind {
+  ANALYSIS
+  SEARCH_EVIDENCE
+  COMPARISON
+}
+
+enum ScheduleFrequency {
+  DAILY
+  WEEKLY
+}
+
+enum ScheduleStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+}
+
+enum ScheduleRunStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  SKIPPED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions         Session[]
+  workspaceLinks   WorkspaceMember[]
+  createdTasks     SearchTask[]
+  auditLogs        AuditLog[]
+  ownedWorkspaces  Workspace[]       @relation("WorkspaceOwner")
+  reviewedEvidence Evidence[]        @relation("EvidenceReviewer")
+  evidenceReviews  EvidenceReview[]  @relation("EvidenceReviewAuthor")
+  conversations    Conversation[]
+  createdSchedules Schedule[]        @relation("ScheduleCreator")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner                  User                       @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members                WorkspaceMember[]
+  brands                 Brand[]
+  competitors            Competitor[]
+  questionSets           QuestionSet[]
+  questions              Question[]
+  credentials            SearchProviderCredential[]
+  tasks                  SearchTask[]
+  taskItems              SearchTaskItem[]
+  results                SearchResult[]
+  evidence               Evidence[]
+  rawResponses           RawSearchResponse[]
+  recommendations        OptimizationTask[]
+  auditLogs              AuditLog[]
+  conversations          Conversation[]
+  modelCredential        ModelProviderCredential?
+  ConversationAttachment ConversationAttachment[]
+  AnalysisTask           AnalysisTask[]
+  Report                 Report[]
+  UsageRecord            UsageRecord[]
+  questionSetVersions    QuestionSetVersion[]
+  evidenceReviews        EvidenceReview[]
+  analysisSnapshots      AnalysisSnapshot[]
+  optimizationEvents     OptimizationEvent[]
+  schedules              Schedule[]
+  scheduleRuns           ScheduleRun[]
+}
+
+model WorkspaceMember {
+  id          String     @id @default(cuid())
+  workspaceId String
+  userId      String
+  role        MemberRole @default(MEMBER)
+  joinedAt    DateTime   @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, userId])
+  @@index([userId])
+}
+
+model Brand {
+  id                 String    @id @default(cuid())
+  workspaceId        String
+  name               String
+  aliases            String[]
+  websiteUrl         String?
+  websiteDomain      String?
+  industry           String?
+  description        String?
+  keywords           String[]
+  /// 已知官方子域名（可解释的官网归属补充；不含主域）
+  officialSubdomains String[]  @default([])
+  /// 可选产品名称与产品别名（用于「产品提及」的独立匹配依据）
+  products           String[]  @default([])
+  productAliases     String[]  @default([])
+  /// 预留的匹配配置（当前仅保存，不参与隐藏规则）
+  matchConfig        Json?
+  lastAnalyzedAt     DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  workspace          Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  competitors        Competitor[]
+  tasks              SearchTask[]
+  evidence           Evidence[]
+  recommendations    OptimizationTask[]
+  AnalysisTask       AnalysisTask[]
+  Report             Report[]
+  optimizationEvents OptimizationEvent[]
+  schedules          Schedule[]
+
+  @@index([workspaceId])
+}
+
+model Competitor {
+  id            String   @id @default(cuid())
+  workspaceId   String
+  brandId       String
+  name          String
+  aliases       String[]
+  websiteUrl    String?
+  websiteDomain String?
+  description   String?
+  note          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  brand     Brand     @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([brandId])
+}
+
+model QuestionSet {
+  id             String    @id @default(cuid())
+  workspaceId    String
+  name           String
+  description    String?
+  /// 当前版本号；每次问题内容变更都会递增并写入不可变快照
+  currentVersion Int       @default(1)
+  archivedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  workspace Workspace            @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  questions Question[]
+  versions  QuestionSetVersion[]
+  tasks     SearchTask[]
+  schedules Schedule[]
+
+  @@index([workspaceId])
+  @@index([workspaceId, archivedAt])
+}
+
+/// 问题集版本快照：不可变（只创建，不更新），用于历史任务与复测的可比性说明
+model QuestionSetVersion {
+  id            String   @id @default(cuid())
+  workspaceId   String
+  questionSetId String
+  version       Int
+  name          String
+  description   String?
+  /// [{ id, text, category, intent, priority, enabled, version }]
+  questions     Json
+  questionCount Int      @default(0)
+  enabledCount  Int      @default(0)
+  note          String?
+  createdById   String?
+  createdAt     DateTime @default(now())
+
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  questionSet QuestionSet  @relation(fields: [questionSetId], references: [id], onDelete: Cascade)
+  tasks       SearchTask[]
+
+  @@unique([questionSetId, version])
+  @@index([workspaceId])
+}
+
+model Question {
+  id            String   @id @default(cuid())
+  workspaceId   String
+  questionSetId String
+  text          String
+  category      String?
+  intent        String?
+  region        String?
+  language      String?
+  priority      Int      @default(3)
+  enabled       Boolean  @default(true)
+  /// 该问题最近一次变更时的问题集版本号
+  version       Int      @default(1)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  workspace   Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  questionSet QuestionSet      @relation(fields: [questionSetId], references: [id], onDelete: Cascade)
+  taskItems   SearchTaskItem[]
+  results     SearchResult[]
+
+  @@index([workspaceId])
+  @@index([questionSetId])
+  @@index([enabled])
+}
+
+model SearchProviderCredential {
+  id                 String           @id @default(cuid())
+  workspaceId        String           @unique
+  provider           ProviderName     @default(YUANBAO)
+  displayName        String?
+  publicConfig       Json?
+  encryptedSecret    String?
+  maskedSecret       String?
+  status             CredentialStatus @default(NOT_CONFIGURED)
+  lastTestedAt       DateTime?
+  lastTestDurationMs Int?
+  lastTestRequestId  String?
+  lastTestOk         Boolean?
+  lastErrorMessage   String?
+  updatedById        String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model SearchTask {
+  id                   String        @id @default(cuid())
+  workspaceId          String
+  brandId              String?
+  name                 String
+  description          String?
+  provider             ProviderName
+  executionMode        ExecutionMode
+  status               TaskStatus    @default(QUEUED)
+  source               String        @default("LAB") // LAB = 搜索实验室；CHAT = 对话平台；SCHEDULE = 定时采集
+  questionSetId        String?
+  /// 任务创建时冻结的问题集版本快照（历史任务不受后续问题编辑影响）
+  questionSetVersionId String?
+  questionSetVersion   Int?
+  totalItems           Int           @default(0)
+  successItems         Int           @default(0)
+  failedItems          Int           @default(0)
+  /// 成功执行但返回 0 条结果的问题数（不等于品牌未出现）
+  emptyItems           Int           @default(0)
+  /// 存在部分结果解析异常的问题数
+  parseErrorItems      Int           @default(0)
+  failureReason        String?
+  params               Json?
+  /// 任务创建时的品牌/竞品匹配配置快照（规则可追溯）
+  brandSnapshot        Json?
+  cancelRequested      Boolean       @default(false)
+  /// 复测链：本轮任务所对比的上一轮任务
+  baselineTaskId       String?
+  scheduleId           String?
+  scheduleRunId        String?       @unique
+  startedAt            DateTime?
+  finishedAt           DateTime?
+  createdById          String
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  workspace             Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  brand                 Brand?              @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  creator               User                @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  questionSet           QuestionSet?        @relation(fields: [questionSetId], references: [id], onDelete: SetNull)
+  questionSetVersionRef QuestionSetVersion? @relation(fields: [questionSetVersionId], references: [id], onDelete: SetNull)
+  baselineTask          SearchTask?         @relation("TaskRetest", fields: [baselineTaskId], references: [id], onDelete: SetNull)
+  retests               SearchTask[]        @relation("TaskRetest")
+  schedule              Schedule?           @relation(fields: [scheduleId], references: [id], onDelete: SetNull)
+  scheduleRun           ScheduleRun?        @relation("ScheduledTask", fields: [scheduleRunId], references: [id], onDelete: SetNull)
+  items                 SearchTaskItem[]
+  results               SearchResult[]
+  evidence              Evidence[]
+  rawResponses          RawSearchResponse[]
+  conversationRuns      ConversationRun[]
+  snapshots             AnalysisSnapshot[]
+
+  @@index([workspaceId])
+  @@index([status])
+  @@index([brandId])
+  @@index([questionSetId])
+  @@index([baselineTaskId])
+  @@index([scheduleId])
+  @@index([createdAt])
+}
+
+model SearchTaskItem {
+  id                String     @id @default(cuid())
+  taskId            String
+  questionId        String?
+  workspaceId       String
+  questionText      String
+  /// 执行时的问题类别快照（问题后续被编辑/删除也不影响历史归类）
+  categorySnapshot  String?
+  status            ItemStatus @default(PENDING)
+  attempts          Int        @default(0)
+  error             String?
+  errorCategory     String?
+  providerRequestId String?
+  durationMs        Int?
+  httpStatus        Int?
+  resultCount       Int        @default(0)
+  parseErrorCount   Int        @default(0)
+  executedAt        DateTime?
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  task      SearchTask     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  question  Question?      @relation(fields: [questionId], references: [id], onDelete: SetNull)
+  workspace Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  results   SearchResult[]
+
+  @@unique([taskId, questionId])
+  @@index([workspaceId])
+  @@index([status])
+  @@index([taskId, status])
+}
+
+model RawSearchResponse {
+  id          String       @id @default(cuid())
+  workspaceId String
+  taskId      String?
+  itemId      String?
+  provider    ProviderName
+  requestId   String?
+  httpStatus  Int?
+  body        String
+  /// 请求元数据（query / 参数 / 执行模式 / 供应商版本等，不含密钥）
+  requestMeta Json?
+  byteSize    Int          @default(0)
+  truncated   Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+
+  workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  task      SearchTask? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  evidence  Evidence[]
+
+  @@index([workspaceId])
+  @@index([createdAt])
+}
+
+model SearchResult {
+  id          String       @id @default(cuid())
+  workspaceId String
+  taskId      String
+  itemId      String
+  questionId  String?
+  position    Int
+  title       String
+  url         String
+  domain      String?
+  snippet     String?
+  publishedAt String?
+  provider    ProviderName
+  isMock      Boolean      @default(false)
+  extra       Json?
+  collectedAt DateTime     @default(now())
+
+  workspace  Workspace               @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  task       SearchTask              @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  item       SearchTaskItem          @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  question   Question?               @relation(fields: [questionId], references: [id], onDelete: SetNull)
+  evidence   Evidence[]
+  sourceRefs SearchSourceReference[]
+
+  @@index([workspaceId])
+  @@index([taskId])
+  @@index([questionId])
+  @@index([domain])
+}
+
+/// 分析后的页面级证据。原始搜索结果保存在 SearchResult / RawSearchResponse 中；
+/// 本表只保存可解释的分类、匹配与人工复核结果，修改规则不覆盖原始数据。
+model Evidence {
+  id                  String            @id @default(cuid())
+  workspaceId         String
+  brandId             String?
+  taskId              String
+  questionId          String?
+  resultId            String?
+  rawResponseId       String?
+  title               String
+  url                 String
+  /// 规范化 URL（仅用于比较/去重；原始 url 永远保留）
+  normalizedUrl       String?
+  domain              String?
+  snippet             String?
+  publishedAt         String?
+  collectedAt         DateTime
+  provider            ProviderName
+  requestId           String?
+  isMock              Boolean           @default(false)
+  pageType            PageType          @default(UNKNOWN)
+  pageTypeSource      DetectionMethod   @default(RULE)
+  /// 命中的分类规则 ID（可解释、可复算）
+  pageTypeRule        String?
+  sourceRole          SourceRole        @default(UNKNOWN)
+  mentionStatus       MentionStatus     @default(PENDING_REVIEW)
+  detectionMethod     DetectionMethod   @default(RULE)
+  /// 匹配依据：OFFICIAL_DOMAIN / TITLE_NAME / TITLE_ALIAS / SNIPPET_NAME / SNIPPET_ALIAS / PRODUCT_NAME / PRODUCT_ALIAS / NONE
+  brandMatchBasis     String[]          @default([])
+  matchedTerms        String[]
+  competitorMatches   String[]
+  officialDomainMatch Boolean           @default(false)
+  thirdPartyMention   Boolean           @default(false)
+  /// 产生本行分析结果的规则版本
+  ruleVersion         String            @default("evidence-v1")
+  analyzedAt          DateTime          @default(now())
+  tags                String[]
+  relevance           EvidenceRelevance @default(UNKNOWN)
+  reviewNote          String?
+  reviewedAt          DateTime?
+  reviewedById        String?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  workspace   Workspace          @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  brand       Brand?             @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  task        SearchTask         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  result      SearchResult?      @relation(fields: [resultId], references: [id], onDelete: SetNull)
+  rawResponse RawSearchResponse? @relation(fields: [rawResponseId], references: [id], onDelete: SetNull)
+  reviewer    User?              @relation("EvidenceReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviews     EvidenceReview[]
+
+  @@index([workspaceId])
+  @@index([brandId])
+  @@index([taskId])
+  @@index([taskId, questionId])
+  @@index([mentionStatus])
+  @@index([domain])
+  @@index([normalizedUrl])
+  @@index([pageType])
+  @@index([collectedAt])
+}
+
+/// 人工复核审计：每次修改都留痕，原始 API 数据不被覆盖
+model EvidenceReview {
+  id          String   @id @default(cuid())
+  workspaceId String
+  evidenceId  String
+  reviewerId  String?
+  /// CONFIRM_MATCH / REJECT_MATCH / SET_PAGE_TYPE / SET_BRAND / MARK_UNCERTAIN
+  action      String
+  previous    Json?
+  next        Json?
+  note        String?
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  evidence  Evidence  @relation(fields: [evidenceId], references: [id], onDelete: Cascade)
+  reviewer  User?     @relation("EvidenceReviewAuthor", fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, createdAt])
+  @@index([evidenceId])
+}
+
+model OptimizationTask {
+  id           String               @id @default(cuid())
+  workspaceId  String
+  brandId      String?
+  title        String
+  description  String
+  type         String
+  priority     OptimizationPriority @default(MEDIUM)
+  status       OptimizationStatus   @default(OPEN)
+  evidenceIds  String[]
+  questionRefs String[]
+  assignee     String?
+  dueDate      DateTime?
+  generatedBy  String               @default("RULE_ENGINE")
+  completedAt  DateTime?
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  brand     Brand?    @relation(fields: [brandId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@index([status])
+  @@index([brandId])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  workspaceId String?
+  userId      String?
+  action      String
+  targetType  String?
+  targetId    String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  user      User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// ─────────────────────────────────────────────
+// 对话平台（GPT 风格多模式 AI 工作台）
+// ─────────────────────────────────────────────
+
+enum ConversationMode {
+  SEARCH_ANSWER
+  SEARCH_EVIDENCE
+  GEO_ANALYSIS
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM // 仅内部使用，不作为普通消息展示
+}
+
+enum MessageStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum RunStatus {
+  QUEUED
+  SEARCHING
+  GENERATING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum ModelProviderName {
+  OPENAI_COMPATIBLE
+}
+
+enum ModelCredentialStatus {
+  NOT_CONFIGURED
+  PENDING_VERIFICATION
+  CONNECTED
+  FAILED
+  DISABLED
+}
+
+/// 大模型凭据（OpenAI 兼容接口）。API Key 加密存储，与元宝密钥分开。
+model ModelProviderCredential {
+  id                 String                @id @default(cuid())
+  workspaceId        String                @unique
+  provider           ModelProviderName     @default(OPENAI_COMPATIBLE)
+  displayName        String?
+  baseUrl            String
+  modelName          String
+  publicParams       Json?
+  encryptedSecret    String?
+  maskedSecret       String?
+  status             ModelCredentialStatus @default(NOT_CONFIGURED)
+  lastTestedAt       DateTime?
+  lastTestDurationMs Int?
+  lastTestOk         Boolean?
+  lastErrorMessage   String?
+  updatedById        String?
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model Conversation {
+  id          String           @id @default(cuid())
+  workspaceId String
+  userId      String
+  title       String           @default("新对话")
+  currentMode ConversationMode @default(SEARCH_ANSWER)
+  isFavorite  Boolean          @default(false)
+  archivedAt  DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  workspace              Workspace                @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user                   User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages               ConversationMessage[]
+  runs                   ConversationRun[]
+  ConversationAttachment ConversationAttachment[]
+
+  @@index([workspaceId])
+  @@index([userId])
+  @@index([updatedAt])
+  @@index([workspaceId, isFavorite])
+}
+
+model ConversationMessage {
+  id             String           @id @default(cuid())
+  conversationId String
+  role           MessageRole
+  content        String
+  mode           ConversationMode
+  status         MessageStatus    @default(COMPLETED)
+  errorCode      String?
+  runId          String?
+  deletedAt      DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  conversation   Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  run            ConversationRun?  @relation("MessageRun", fields: [runId], references: [id], onDelete: SetNull)
+  runAsUser      ConversationRun[] @relation("RunUserMessage")
+  runAsAssistant ConversationRun[] @relation("RunAssistantMessage")
+
+  @@index([conversationId])
+  @@index([createdAt])
+}
+
+/// 一次执行：搜索 + 模型调用 + 引用，关联用户消息与助手消息。
+model ConversationRun {
+  id                 String           @id @default(cuid())
+  conversationId     String
+  userMessageId      String           @unique
+  assistantMessageId String?          @unique
+  mode               ConversationMode
+  status             RunStatus        @default(QUEUED)
+  stage              String? // 给前端展示的真实阶段：searching / generating / saving
+  searchTaskId       String?
+  searchItemId       String?
+  searchError        String?
+  modelProvider      String?
+  modelName          String?
+  modelError         String?
+  promptTokens       Int?
+  completionTokens   Int?
+  brandId            String?
+  cancelRequested    Boolean          @default(false)
+  startedAt          DateTime         @default(now())
+  finishedAt         DateTime?
+  errorCode          String?
+  createdAt          DateTime         @default(now())
+
+  conversation     Conversation            @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userMessage      ConversationMessage     @relation("RunUserMessage", fields: [userMessageId], references: [id], onDelete: Cascade)
+  assistantMessage ConversationMessage?    @relation("RunAssistantMessage", fields: [assistantMessageId], references: [id], onDelete: SetNull)
+  runAsAssistant   ConversationMessage[]   @relation("MessageRun")
+  sources          SearchSourceReference[]
+  searchTask       SearchTask?             @relation(fields: [searchTaskId], references: [id], onDelete: SetNull)
+
+  @@index([conversationId])
+  @@index([status])
+}
+
+/// 回答中的来源引用：citationIndex ↔ 真实搜索结果。
+model SearchSourceReference {
+  id             String   @id @default(cuid())
+  runId          String
+  searchResultId String
+  citationIndex  Int
+  createdAt      DateTime @default(now())
+
+  run          ConversationRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  searchResult SearchResult    @relation(fields: [searchResultId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, citationIndex])
+  @@index([runId])
+}
+
+// ─────────────────────────────────────────────
+// 附件、GEO 分析任务、指标、报告与用量
+// ─────────────────────────────────────────────
+
+enum AttachmentParseStatus {
+  PARSED
+  FAILED
+  UNSUPPORTED
+}
+
+/// 会话附件：仅保存服务端提取的文本，供模型上下文使用（不保存二进制）
+model ConversationAttachment {
+  id             String                @id @default(cuid())
+  workspaceId    String
+  conversationId String
+  filename       String
+  mimeType       String
+  sizeBytes      Int
+  extractedText  String?
+  parseStatus    AttachmentParseStatus @default(PARSED)
+  parseError     String?
+  createdAt      DateTime              @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  workspace    Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([workspaceId])
+}
+
+enum AnalysisStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  PARTIALLY_COMPLETED
+  FAILED
+  CANCELLED
+}
+
+/// GEO 分析任务：基于已保存的真实对话回答/搜索结果计算指标（不自动新增搜索）
+model AnalysisTask {
+  id              String         @id @default(cuid())
+  workspaceId     String
+  brandId         String?
+  name            String
+  days            Int            @default(30)
+  keywordFilter   String?
+  competitorIds   String[]
+  scope           Json?
+  status          AnalysisStatus @default(QUEUED)
+  sampleSize      Int            @default(0)
+  answerCount     Int            @default(0)
+  scopeNote       String?
+  errorCode       String?
+  errorMessage    String?
+  cancelRequested Boolean        @default(false)
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  createdById     String
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  workspace Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  brand     Brand?           @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  metrics   AnalysisMetric[]
+  reports   Report[]
+
+  @@index([workspaceId])
+  @@index([brandId])
+  @@index([status])
+}
+
+/// 分析指标：分子/分母/公式版本全部落库，保证可追溯
+model AnalysisMetric {
+  id             String   @id @default(cuid())
+  taskId         String
+  key            String
+  label          String
+  value          Float?
+  numerator      Int      @default(0)
+  denominator    Int      @default(0)
+  formulaVersion String   @default("v1")
+  insufficient   Boolean  @default(false)
+  notes          String?
+  breakdown      Json?
+  createdAt      DateTime @default(now())
+
+  task AnalysisTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, key])
+  @@index([taskId])
+}
+
+/// 分析报告：保存生成时的快照，之后数据变化不影响历史报告
+model Report {
+  id             String     @id @default(cuid())
+  workspaceId    String
+  kind           ReportKind @default(ANALYSIS)
+  analysisTaskId String?
+  searchTaskId   String?
+  baselineTaskId String?
+  retestTaskId   String?
+  brandId        String?
+  title          String
+  version        Int        @default(1)
+  snapshot       Json
+  markdown       String
+  dataWindowFrom DateTime?
+  dataWindowTo   DateTime?
+  generatedAt    DateTime   @default(now())
+  createdById    String
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  workspace Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  task      AnalysisTask? @relation(fields: [analysisTaskId], references: [id], onDelete: SetNull)
+  brand     Brand?        @relation(fields: [brandId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@index([brandId])
+  @@index([kind])
+  @@index([searchTaskId])
+}
+
+/// 采集轮次分析快照：保留当时的问题文本、匹配规则版本、指标与证据摘要。
+/// 原始采集事实在 SearchResult/RawSearchResponse 中；重新分析会创建新的 RECOMPUTE 快照，不覆盖 COLLECTION。
+model AnalysisSnapshot {
+  id                   String   @id @default(cuid())
+  workspaceId          String
+  taskId               String
+  /// COLLECTION = 采集完成时；RECOMPUTE = 使用新规则重算
+  kind                 String   @default("COLLECTION")
+  ruleVersion          String
+  questionSetVersionId String?
+  questionSetVersion   Int?
+  summary              Json
+  metrics              Json
+  matrix               Json
+  pageTypeDistribution Json
+  questionSnapshot     Json
+  evidenceSnapshot     Json
+  evidenceCount        Int      @default(0)
+  truncated            Boolean  @default(false)
+  createdById          String?
+  createdAt            DateTime @default(now())
+
+  workspace Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  task      SearchTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, kind, ruleVersion])
+  @@index([workspaceId, createdAt])
+  @@index([taskId])
+}
+
+/// 优化事件：记录内容/页面修改，供「优化前后」相关展示；不用于推断因果
+model OptimizationEvent {
+  id             String   @id @default(cuid())
+  workspaceId    String
+  brandId        String?
+  name           String
+  occurredAt     DateTime
+  contentChanged String?
+  pageUrls       String[] @default([])
+  note           String?
+  baselineTaskId String?
+  retestTaskId   String?
+  createdById    String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  brand     Brand?    @relation(fields: [brandId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, occurredAt])
+  @@index([brandId])
+}
+
+/// 定时采集排期（默认关闭；需要显式启用且确认调用成本）
+model Schedule {
+  id                   String             @id @default(cuid())
+  workspaceId          String
+  brandId              String?
+  questionSetId        String
+  questionSetVersionId String?
+  name                 String
+  frequency            ScheduleFrequency
+  timezone             String             @default("Asia/Shanghai")
+  hour                 Int                @default(9)
+  minute               Int                @default(0)
+  /// ISO 星期（1=周一 … 7=周日），仅 WEEKLY 使用
+  weekday              Int?
+  executionMode        ExecutionMode      @default(REAL)
+  params               Json?
+  /// 用户显式确认会产生额外调用成本
+  confirmedCost        Boolean            @default(false)
+  status               ScheduleStatus     @default(ACTIVE)
+  nextRunAt            DateTime?
+  lastRunAt            DateTime?
+  lastRunStatus        ScheduleRunStatus?
+  failureCount         Int                @default(0)
+  createdById          String
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  workspace   Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  brand       Brand?        @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  questionSet QuestionSet   @relation(fields: [questionSetId], references: [id], onDelete: Cascade)
+  createdBy   User          @relation("ScheduleCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  runs        ScheduleRun[]
+  tasks       SearchTask[]
+
+  @@index([workspaceId, status])
+  @@index([nextRunAt])
+}
+
+model ScheduleRun {
+  id            String            @id @default(cuid())
+  workspaceId   String
+  scheduleId    String
+  plannedAt     DateTime
+  status        ScheduleRunStatus @default(PENDING)
+  attempt       Int               @default(1)
+  error         String?
+  errorCategory String?
+  startedAt     DateTime?
+  finishedAt    DateTime?
+  createdAt     DateTime          @default(now())
+
+  workspace Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  schedule  Schedule    @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  task      SearchTask? @relation("ScheduledTask")
+
+  @@unique([scheduleId, plannedAt])
+  @@index([workspaceId, status])
+  @@index([scheduleId, createdAt])
+}
+
+enum UsageKind {
+  SEARCH
+  MODEL
+}
+
+/// 用量记录：只记录真实发生的调用；外部未返回的费用保持未知
+model UsageRecord {
+  id               String    @id @default(cuid())
+  workspaceId      String
+  kind             UsageKind
+  refType          String
+  refId            String?
+  provider         String
+  model            String?
+  promptTokens     Int?
+  completionTokens Int?
+  costKnown        Boolean   @default(false)
+  costNote         String?
+  createdAt        DateTime  @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId, createdAt])
+  @@index([workspaceId, kind])
+}

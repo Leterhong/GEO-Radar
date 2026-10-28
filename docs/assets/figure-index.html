@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>GEO Radar 文章配图总览</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #F7F9FC; color: #172033; font-family: 'Microsoft YaHei', system-ui, -apple-system, sans-serif; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 24px 64px; }
+  h1 { font-size: 22px; margin: 0 0 6px; }
+  .lead { color: #667085; font-size: 13px; margin-bottom: 8px; }
+  .meta { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0 26px; }
+  .chip { font-size: 12px; padding: 4px 10px; border-radius: 6px; background: #EDF4FF; color: #315FC7; }
+  .chip.ok { background: #E8F8F2; color: #16845B; }
+  .grid { display: grid; grid-template-columns: 1fr; gap: 22px; }
+  figure { margin: 0; background: #fff; border: 1px solid #E6EAF0; border-radius: 14px; overflow: hidden; }
+  figure a { display: block; }
+  figure img { display: block; width: 100%; height: auto; }
+  figcaption { padding: 12px 16px; border-top: 1px solid #E6EAF0; font-size: 13px; color: #344054; }
+  figcaption b { color: #172033; }
+  .path { font-family: Consolas, monospace; font-size: 11.5px; color: #98A2B3; margin-left: 6px; }
+  .note { margin-top: 26px; padding: 14px 16px; border-radius: 12px; background: #FFF8E8; border: 1px solid #F3E3C0; font-size: 12.5px; color: #8A5A12; line-height: 1.7; }
+  @media (min-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } figure.full { grid-column: 1 / -1; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>GEO Radar 文章配图总览</h1>
+  <p class="lead">共 9 张，全部来自本机真实运行（真实元宝搜索 10 次调用、99 条结果）。点击任意图片可查看原始尺寸。</p>
+  <div class="meta">
+    <span class="chip ok">✓ 元宝 API 已真实调用</span>
+    <span class="chip">10 问题 / 99 条结果 / 82 域名</span>
+    <span class="chip">品牌出现率 60.0%（6/10）</span>
+    <span class="chip">豆包 70% · Kimi 70%</span>
+  </div>
+
+  <div class="grid">
+    <figure class="full">
+      <a href="architecture.svg" target="_blank"><img src="architecture.svg" alt="架构图" /></a>
+      <figcaption><b>图 1｜系统架构</b><span class="path">assets/architecture.svg</span></figcaption>
+    </figure>
+
+    <figure>
+      <a href="brand-mention-rate.png" target="_blank"><img src="brand-mention-rate.png" alt="品牌提及率公式" /></a>
+      <figcaption><b>图 2｜品牌提及率公式</b><span class="path">assets/brand-mention-rate.png</span></figcaption>
+    </figure>
+
+    <figure>
+      <a href="api-call.png" target="_blank"><img src="api-call.png" alt="真实 API 请求与返回" /></a>
+      <figcaption><b>图 3｜真实请求与返回（RequestId 1bbd2cec…）</b><span class="path">assets/api-call.png</span></figcaption>
+    </figure>
+
+    <figure>
+      <a href="shot-settings-connected.png" target="_blank"><img src="shot-settings-connected.png" alt="数据源已连接" /></a>
+      <figcaption><b>图 4｜数据源已连接（722ms / standard / 10 条）</b><span class="path">assets/shot-settings-connected.png</span></figcaption>
+    </figure>
+
+    <figure class="full">
+      <a href="shot-task-detail.png" target="_blank"><img src="shot-task-detail.png" alt="搜索任务详情" /></a>
+      <figcaption><b>图 5｜搜索任务详情：10 个问题的状态 / 条数 / 耗时 / 尝试 / RequestId</b><span class="path">assets/shot-task-detail.png</span></figcaption>
+    </figure>
+
+    <figure class="full">
+      <a href="shot-evidence.png" target="_blank"><img src="shot-evidence.png" alt="证据库" /></a>
+      <figcaption><b>图 6｜证据库：99 条结果按采集时间归档</b><span class="path">assets/shot-evidence.png</span></figcaption>
+    </figure>
+
+    <figure class="full">
+      <a href="shot-visibility.png" target="_blank"><img src="shot-visibility.png" alt="品牌可见度" /></a>
+      <figcaption><b>图 7｜品牌可见度：60% / 100% / 0% + 来源域名分布 + 竞品对比</b><span class="path">assets/shot-visibility.png</span></figcaption>
+    </figure>
+
+    <figure class="full">
+      <a href="shot-analysis.png" target="_blank"><img src="shot-analysis.png" alt="GEO 分析" /></a>
+      <figcaption><b>图 8｜GEO 分析：指标含分子 / 分母 / 公式版本，无样本显示「不可计算」</b><span class="path">assets/shot-analysis.png</span></figcaption>
+    </figure>
+
+    <figure class="full">
+      <a href="shot-report.png" target="_blank"><img src="shot-report.png" alt="分析报告" /></a>
+      <figcaption><b>图 9｜分析报告：快照式指标表 + 数据限制，可导出 MD / CSV</b><span class="path">assets/shot-report.png</span></figcaption>
+    </figure>
+  </div>
+
+  <div class="note">
+    <b>还需你本人补拍：</b>腾讯云控制台的 4 张操作截图（注册登录、元宝搜索概览、版本与开通、创建 API Key）。
+    这些页面需要你的账号会话，我无法代拍；截图时请裁掉账号 ID、订单号与 API Key 明文。
+  </div>
+</div>
+</body>
+</html>
