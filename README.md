@@ -12,7 +12,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![Prisma](https://img.shields.io/badge/Prisma-5.22-2D3748?logo=prisma)](https://www.prisma.io/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql)](https://www.postgresql.org/)
-[![Tests](https://img.shields.io/badge/tests-119%20passing-brightgreen)](#测试与验证)
+[![Tests](https://img.shields.io/badge/tests-122%20passing-brightgreen)](#测试与验证)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Status](https://img.shields.io/badge/status-prototype-orange)](#已知限制)
 
@@ -230,6 +230,64 @@ Response: Pages[] + RequestId + Version + Msg
 
 ---
 
+## Agent 集成：Skill / MCP / DSH 插件
+
+GEO Radar 不只给人用，也可以给 Agent 用。仓库内置三件套：
+
+| 形态 | 位置 | 用途 |
+| --- | --- | --- |
+| **Agent Skill** | `skills/geo-radar/SKILL.md` | 告诉 Agent 何时调用、如何安全地采集/比较/报告 |
+| **MCP Server** | `packages/geo-radar-mcp/` | 12 个 `geo_*` 工具，支持 Claude Code / Cursor / DSH |
+| **DSH Plugin** | `packages/dsh-geo-radar/` | 纯声明插件，把 MCP 挂成 `mcp__geo-radar__*` 工具 |
+
+### 1. 创建 Workspace Token
+
+```bash
+npm run token:create -- you@example.com "MCP token"
+# 只显示一次：gr_...
+```
+
+也可以在 **设置 → API Token / MCP** 页面创建和撤销。
+
+### 2. 配置 MCP
+
+```json
+{
+  "mcpServers": {
+    "geo-radar": {
+      "command": "node",
+      "args": ["/absolute/path/to/GEO-Radar/packages/geo-radar-mcp/index.mjs"],
+      "env": {
+        "GEO_RADAR_URL": "http://127.0.0.1:3000",
+        "GEO_RADAR_TOKEN": "gr_..."
+      }
+    }
+  }
+}
+```
+
+### 3. DSH 插件
+
+```bash
+export GEO_RADAR_URL=http://127.0.0.1:3000
+export GEO_RADAR_TOKEN=gr_...
+node scripts/install-dsh-plugin.mjs
+dsh plugin --profile web add "$PWD/packages/dsh-geo-radar"
+# 重启 DSH，出现 mcp__geo-radar__geo_* 工具
+```
+
+### 4. 安全边界
+
+- MCP 不会伪造搜索结果或指标；所有数字来自 GEO Radar API。
+- `geo_create_task` 只创建 `QUEUED` 任务，不调用搜索。
+- `geo_start_task` 对 `REAL` 任务强制要求 `confirmReal=true`，防止 Agent 自行消耗额度。
+- 测试流程优先使用 `MOCK`。
+- Token 是 workspace 级凭证，只存哈希；可在设置页撤销。
+
+详见 [docs/agent-integration.md](docs/agent-integration.md) 与 [skills/geo-radar/SKILL.md](skills/geo-radar/SKILL.md)。
+
+---
+
 ## 快速开始
 
 ### 前置条件
@@ -343,7 +401,7 @@ npm run dev
 | `npm run start` | 启动生产服务 |
 | `npm run typecheck` | TypeScript 类型检查 |
 | `npm run lint` | ESLint |
-| `npm test` | 运行 Vitest（119 个用例） |
+| `npm test` | 运行 Vitest（122 个用例） |
 | `npm run dev:db` | 启动内嵌 PostgreSQL（15432） |
 | `npm run db:migrate` | 执行 Prisma 迁移 |
 | `npm run db:status` | 查看迁移状态 |
@@ -352,6 +410,9 @@ npm run dev
 | `npm run verify:ui` | Playwright UI 检查与截图 |
 | `npm run scheduler` | 独立调度进程 |
 | `npm run reset-password -- <email> <newpass>` | 本地重置密码 |
+| `npm run token:create -- <email> "<name>"` | 创建 MCP / Agent Workspace Token |
+| `npm run smoke:mcp` | 验证 MCP Server 工具与 Token |
+| `npm run dsh:install` | 生成 DSH MCP 插件补丁 |
 | `npm run key:import -- <email>` | 将 `.env.local` 中的 Key 加密导入 |
 
 ---
@@ -367,7 +428,7 @@ npm run build
 
 当前验证状态：
 
-- **119 个 Vitest 用例**：证据链、矩阵、快照、比较、报告、调度、元宝 Provider、权限与集成流程
+- **122 个 Vitest 用例**：证据链、矩阵、快照、比较、报告、调度、元宝 Provider、权限与集成流程
 - **58 项端到端冒烟**：注册 → 建品牌/问题 → Mock 任务 → 证据 → 报告 → 导出
 - **42 项证据链冒烟**：版本、人工复核、复测、比较、报告、定时、数据隔离
 - **Playwright UI 检查**：核心页面截图与浏览器 console 错误检查
@@ -400,6 +461,9 @@ prisma/
   schema.prisma
   migrations/            非破坏性迁移
 scripts/                 冒烟、调度、密码重置、视频/截图工具
+packages/geo-radar-mcp/   MCP Server（12 个 geo_* 工具）
+packages/dsh-geo-radar/  DSH MCP 插件（纯声明）
+skills/geo-radar/        Agent Skill（工作流与安全规则）
 tests/                   单元、集成、Playwright
 docs/                    架构、数据字典、API、部署、证据链、案例
 ```
@@ -437,6 +501,7 @@ docs/                    架构、数据字典、API、部署、证据链、案�
 | [docs/testing.md](docs/testing.md) | 测试与验证方法 |
 | [docs/article-geo-radar.md](docs/article-geo-radar.md) | 实战文章：从真实搜索到证据平台 |
 | [docs/csdn-submission.md](docs/csdn-submission.md) | 元宝搜索征文大赛提交说明 |
+| [docs/agent-integration.md](docs/agent-integration.md) | Agent Skill / MCP / DSH 插件接入 |
 | [docs/change-set.md](docs/change-set.md) | 本轮变更文件清单 |
 
 ---

@@ -12,7 +12,7 @@ Turn real AI-search web results into traceable, recomputable and reviewable bran
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![Prisma](https://img.shields.io/badge/Prisma-5.22-2D3748?logo=prisma)](https://www.prisma.io/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql)](https://www.postgresql.org/)
-[![Tests](https://img.shields.io/badge/tests-119%20passing-brightgreen)](#testing)
+[![Tests](https://img.shields.io/badge/tests-122%20passing-brightgreen)](#testing)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Status](https://img.shields.io/badge/status-prototype-orange)](#known-limitations)
 
@@ -230,6 +230,49 @@ More: [docs/yuanbao-integration.md](docs/yuanbao-integration.md) · [docs/api-in
 
 ---
 
+## Agent integration: Skill / MCP / DSH plugin
+
+The repo ships three ways to use GEO Radar from an agent:
+
+| Form | Location | Purpose |
+| --- | --- | --- |
+| **Agent Skill** | `skills/geo-radar/SKILL.md` | workflow and safety guidance for agents |
+| **MCP Server** | `packages/geo-radar-mcp/` | 12 `geo_*` tools for Claude Code / Cursor / DSH |
+| **DSH Plugin** | `packages/dsh-geo-radar/` | pure declaration plugin mounting the MCP server |
+
+```bash
+npm run token:create -- you@example.com "MCP token"
+```
+
+```json
+{
+  "mcpServers": {
+    "geo-radar": {
+      "command": "node",
+      "args": ["/absolute/path/to/GEO-Radar/packages/geo-radar-mcp/index.mjs"],
+      "env": {
+        "GEO_RADAR_URL": "http://127.0.0.1:3000",
+        "GEO_RADAR_TOKEN": "gr_..."
+      }
+    }
+  }
+}
+```
+
+DSH:
+
+```bash
+export GEO_RADAR_URL=http://127.0.0.1:3000
+export GEO_RADAR_TOKEN=gr_...
+node scripts/install-dsh-plugin.mjs
+dsh plugin --profile web add "$PWD/packages/dsh-geo-radar"
+```
+
+Safety: `REAL` tasks require `confirmReal=true` in `geo_start_task`; use `MOCK` for workflow tests.
+See [docs/agent-integration.md](docs/agent-integration.md).
+
+---
+
 ## Quick start
 
 ### Prerequisites
@@ -319,7 +362,7 @@ See [.env.example](.env.example) and [docs/deployment.md](docs/deployment.md).
 | `npm run start` | start production server |
 | `npm run typecheck` | TypeScript check |
 | `npm run lint` | ESLint |
-| `npm test` | Vitest (119 tests) |
+| `npm test` | Vitest (122 tests) |
 | `npm run dev:db` | embedded PostgreSQL (15432, Windows) |
 | `npm run db:migrate` | apply Prisma migrations |
 | `npm run db:status` | migration status |
@@ -331,6 +374,9 @@ See [.env.example](.env.example) and [docs/deployment.md](docs/deployment.md).
 | `npm run verify:ui` | Playwright UI checks and screenshots |
 | `npm run scheduler` | standalone scheduler |
 | `npm run reset-password -- <email> <newpass>` | reset a local password |
+| `npm run token:create -- <email> "<name>"` | create an MCP / agent workspace token |
+| `npm run smoke:mcp` | verify the MCP server and token |
+| `npm run dsh:install` | generate the DSH MCP plugin patch |
 | `npm run key:import -- <email>` | import key from `.env.local` |
 
 ---
@@ -346,7 +392,7 @@ npm run build
 
 Current verification:
 
-- **119 Vitest tests**: evidence chain, matrix, snapshots, comparison, reports, scheduling, Yuanbao provider, permissions and integration flow
+- **122 Vitest tests**: evidence chain, matrix, snapshots, comparison, reports, scheduling, Yuanbao provider, permissions and integration flow
 - **58 end-to-end smoke checks**: register → brand/questions → Mock task → evidence → report → export
 - **42 evidence-chain smoke checks**: versions, human review, retest, comparison, report, schedules, isolation
 - **Playwright UI checks**: key pages and browser console errors
@@ -379,6 +425,9 @@ prisma/
   schema.prisma
   migrations/            non-destructive migrations
 scripts/                 smoke, scheduler, password reset, Docker, video/screenshot tools
+packages/geo-radar-mcp/  MCP server (12 geo_* tools)
+packages/dsh-geo-radar/  DSH MCP plugin (pure declaration)
+skills/geo-radar/        Agent Skill (workflow + safety)
 tests/                   unit, integration, Playwright
 docs/                    architecture, data dictionary, API, deployment, evidence chain, case study
 ```

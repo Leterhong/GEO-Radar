@@ -1,0 +1,14 @@
+# Example only. Run `node scripts/install-dsh-plugin.mjs` to generate the real
+# `cordis.patch.yml` with an absolute MCP path and your own token.
+- insert:
+    - id: mcp-geo-radar
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: geo-radar
+        transport: stdio
+        command: node
+        args:
+          - '/absolute/path/to/GEO-Radar/packages/geo-radar-mcp/index.mjs'
+        env:
+          GEO_RADAR_URL: 'http://127.0.0.1:3000'
+          GEO_RADAR_TOKEN: 'gr_replace_me'

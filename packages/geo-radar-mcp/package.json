@@ -1,0 +1,21 @@
+{
+  "name": "@geo-radar/mcp",
+  "version": "0.1.0",
+  "description": "MCP server for GEO Radar — list brands, run evidence tasks, inspect matrices and generate reports.",
+  "type": "module",
+  "bin": {
+    "geo-radar-mcp": "./index.mjs"
+  },
+  "files": [
+    "index.mjs",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^3.25.0"
+  },
+  "license": "MIT"
+}

@@ -49,6 +49,9 @@
     "smoke:evidence": "node scripts/smoke-evidence-chain.mjs",
     "verify:ui": "node scripts/ui-verify.mjs",
     "reset-password": "node scripts/reset-password.mjs",
+    "token:create": "node scripts/create-token.mjs",
+    "dsh:install": "node scripts/install-dsh-plugin.mjs",
+    "smoke:mcp": "node scripts/mcp-smoke.mjs",
     "key:import": "node scripts/import-env-key.mjs"
   },
   "prisma": {
@@ -56,6 +59,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "3.9.0",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "@prisma/client": "5.22.0",
     "@radix-ui/react-alert-dialog": "1.1.2",
     "@radix-ui/react-avatar": "1.1.1",

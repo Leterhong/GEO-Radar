@@ -21,6 +21,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { CredentialStatusBadge } from "@/components/shared/status-badges";
+import { ApiTokenManager } from "@/components/settings/api-token-manager";
 import { formatDate, formatDuration } from "@/lib/utils";
 import { Eye, EyeOff, Save, PlugZap, Trash2, Ban, CheckCircle2, Plus, KeyRound, ShieldCheck, XCircle } from "lucide-react";
 
@@ -293,6 +294,7 @@ export function SettingsClient({
         <TabsTrigger value="datasource">元宝搜索数据源</TabsTrigger>
         <TabsTrigger value="model">大模型</TabsTrigger>
         <TabsTrigger value="workspace">工作空间</TabsTrigger>
+        <TabsTrigger value="tokens">API Token / MCP</TabsTrigger>
         <TabsTrigger value="profile">个人资料</TabsTrigger>
       </TabsList>
 
@@ -600,6 +602,10 @@ export function SettingsClient({
             </div>
           </CardContent>
         </Card>
+      </TabsContent>
+
+      <TabsContent value="tokens">
+        <ApiTokenManager />
       </TabsContent>
 
       <TabsContent value="profile">

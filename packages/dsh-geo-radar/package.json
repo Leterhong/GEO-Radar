@@ -1,0 +1,21 @@
+{
+  "name": "@geo-radar/dsh-plugin",
+  "version": "0.1.0",
+  "description": "DSH plugin that mounts the GEO Radar MCP server as mcp__geo-radar__* tools.",
+  "type": "module",
+  "private": false,
+  "dsh": {
+    "manifestVersion": 1,
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "engines": {
+    "dsh": ">=0.1.5-rc.2 <0.2.0"
+  },
+  "files": [
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "license": "MIT"
+}

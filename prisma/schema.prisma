@@ -140,6 +140,7 @@ model User {
   updatedAt    DateTime @updatedAt
 
   sessions         Session[]
+  apiTokens        ApiToken[]
   workspaceLinks   WorkspaceMember[]
   createdTasks     SearchTask[]
   auditLogs        AuditLog[]
@@ -160,6 +161,28 @@ model Session {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+/// Workspace-scoped API token for MCP servers / CLI / agent skills.
+/// The plaintext token is returned only once at creation; only a SHA-256 hash is stored.
+model ApiToken {
+  id          String    @id @default(cuid())
+  workspaceId String
+  userId      String
+  name        String
+  prefix      String
+  tokenHash   String    @unique
+  scopes      String[]  @default([])
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([userId])
+  @@index([createdAt])
 }
 
 model Workspace {
@@ -195,6 +218,7 @@ model Workspace {
   optimizationEvents     OptimizationEvent[]
   schedules              Schedule[]
   scheduleRuns           ScheduleRun[]
+  apiTokens              ApiToken[]
 }
 
 model WorkspaceMember {

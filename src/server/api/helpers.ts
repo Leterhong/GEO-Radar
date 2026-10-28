@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { ZodError, type ZodSchema } from "zod";
 import { prisma } from "@/server/db/client";
 import { getCurrentUser, getActiveWorkspaceId } from "@/server/auth/session";
+import { resolveApiToken, ApiTokenError } from "@/server/auth/api-token";
 import type { User } from "@prisma/client";
 
 export interface ApiErrorShape {
@@ -47,10 +48,31 @@ export async function withAuth<T>(
   handler: (ctx: { user: User; workspaceId: string }) => Promise<T>
 ): Promise<NextResponse> {
   try {
-    const user = await getCurrentUser();
-    if (!user) return apiFail(401, "UNAUTHENTICATED", "请先登录。");
-    const workspaceId = await getActiveWorkspaceId(user.id);
-    if (!workspaceId) return apiFail(403, "NO_WORKSPACE", "尚未创建工作空间。");
+    let user: User | null = null;
+    let workspaceId: string | null = null;
+
+    try {
+      const tokenContext = await resolveApiToken();
+      if (tokenContext) {
+        user = tokenContext.user;
+        workspaceId = tokenContext.workspaceId;
+      }
+    } catch (error) {
+      if (error instanceof ApiTokenError) {
+        return apiFail(401, error.code, error.message);
+      }
+      throw error;
+    }
+
+    // Cookie session fallback. A malformed Bearer token must not silently fall back.
+    if (!user) {
+      user = await getCurrentUser();
+      if (!user) return apiFail(401, "UNAUTHENTICATED", "请先登录，或使用 Bearer API Token。");
+      workspaceId = await getActiveWorkspaceId(user.id);
+      if (!workspaceId) return apiFail(403, "NO_WORKSPACE", "尚未创建工作空间。");
+    }
+    if (!user || !workspaceId) return apiFail(401, "UNAUTHENTICATED", "无法解析登录身份。");
+
     const data = await handler({ user, workspaceId });
     if (data instanceof NextResponse) return data;
     return apiOk(data);
