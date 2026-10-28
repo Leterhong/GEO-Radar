@@ -16,7 +16,7 @@
 [![Live](https://img.shields.io/badge/live-site-0f766e)](https://leterhong.github.io/GEO-Radar/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-[Live Site](https://leterhong.github.io/GEO-Radar/) · [快速开始](#快速开始) · [Agent 集成](#agent-集成skill--mcp--dsh-插件) · [演示视频](#演示视频) · [文档](#文档)
+[Live Site](https://leterhong.github.io/GEO-Radar/) · [部署文档](docs/deployment.md) · [Agent 集成](#agent-集成skill--mcp--dsh-插件) · [文档](#文档)
 
 [简体中文](README.md) · [English](README.en.md)
 
@@ -34,27 +34,23 @@
 
 ---
 
----
-
 ## 快速入口
 
 | 入口 | 地址 |
 | --- | --- |
 | GitHub 仓库 | https://github.com/Leterhong/GEO-Radar |
 | Live Demo | https://leterhong.github.io/GEO-Radar/ |
-| 演示视频（8 分钟） | https://github.com/Leterhong/GEO-Radar/releases/tag/v0.1.0 |
 | **Agent Skill** | https://github.com/Leterhong/GEO-Radar/tree/main/skills/geo-radar |
 | **MCP Server** | https://github.com/Leterhong/GEO-Radar/tree/main/packages/geo-radar-mcp |
 | **DSH 插件** | https://github.com/Leterhong/GEO-Radar/tree/main/packages/dsh-geo-radar |
+| 快速开始 / 部署 | [docs/deployment.md](docs/deployment.md) · [.env.example](.env.example) |
 | Agent 接入文档 | https://github.com/Leterhong/GEO-Radar/blob/main/docs/agent-integration.md |
-
----
 
 ---
 
 ## 核心能力
 
-**元宝 SearchPro 接入**：真实网页结果 + `RequestId`，API Key 服务端 AES-256-GCM 加密。
+- **元宝 SearchPro 接入**：真实网页结果 + `RequestId`，API Key 服务端 AES-256-GCM 加密。
 - **页面级证据链**：URL 规范化、可解释页面分类、品牌匹配依据、人工复核历史；原始层不覆盖。
 - **品牌问题矩阵**：问题 × 品牌/竞品；已发现 / 未发现 / 失败 / 空结果 / 待复核分开。
 - **不可变快照**：`COLLECTION` + `RECOMPUTE`；历史不被规则更新改写。
@@ -69,8 +65,6 @@
 | --- | --- |
 | 失败 ≠ 未发现 | 失败、空结果、未发现、待复核是不同状态 |
 | 样本不足 ≠ 0% | 分母为 0 或未配置官网时显示「不可计算」，不显示 0% |
-
----
 
 ---
 
@@ -136,8 +130,6 @@ dsh plugin --profile web add "$PWD/packages/dsh-geo-radar"
 
 ---
 
----
-
 ## 架构
 
 ```mermaid
@@ -175,65 +167,6 @@ Yuanbao SearchPro
 
 ---
 
----
-
-## 快速开始
-
-### Docker（推荐体验）
-
-```bash
-git clone https://github.com/Leterhong/GEO-Radar.git
-cd GEO-Radar
-npm run docker:up
-# http://localhost:3000
-```
-
-首次运行自动生成 `.env.docker`（随机 secrets，不提交 Git），构建并等待健康检查。
-
-```bash
-npm run docker:down
-npm run docker:logs
-```
-
-> 需要 Docker Desktop / Docker Engine + Compose v2。端口冲突时：`APP_PORT=3300 POSTGRES_PORT=15433 npm run docker:up`。
-
-### 本地开发
-
-```bash
-npm ci
-cp .env.example .env.local
-npm run dev:db      # 内嵌 PostgreSQL，Windows 为主
-npm run db:migrate
-npm run dev
-```
-
-必填环境变量：
-
-| 变量 | 说明 |
-| --- | --- |
-| `DATABASE_URL` | PostgreSQL 连接串 |
-| `AUTH_SECRET` | 会话签名密钥，32 字节随机值 |
-| `CREDENTIAL_ENCRYPTION_KEY` | 32 字节 hex，AES-256-GCM 密钥 |
-| `YUANBAO_SEARCH_ENABLED` | `true` 才允许真实元宝搜索 |
-
-完整配置：[.env.example](.env.example) · [docs/deployment.md](docs/deployment.md)
-
----
-
----
-
-## 演示视频
-
-[![GEO Radar 演示](https://cdn.jsdelivr.net/gh/Leterhong/GEO-Radar@main/docs/assets/readme/hero.jpg)](https://github.com/Leterhong/GEO-Radar/releases/download/v0.1.0/GEO-Radar-yuanbao-demo-1440p.mp4)
-
-**7 分 57 秒 · 1440p · 真实元宝调用 + 完整流程**
-
-[▶ 观看](https://github.com/Leterhong/GEO-Radar/releases/download/v0.1.0/GEO-Radar-yuanbao-demo-1440p.mp4) · [字幕](docs/assets/video/georadar-yuanbao-tour.srt)
-
----
-
----
-
 ## 文档
 
 | 文档 | 内容 |
@@ -249,13 +182,9 @@ npm run dev
 
 ---
 
----
-
 ## Contributing
 
 欢迎 issue / PR。开始前阅读 [CONTRIBUTING.md](CONTRIBUTING.md)；安全问题按 [SECURITY.md](SECURITY.md) 私下报告。
-
----
 
 ---
 
@@ -270,28 +199,7 @@ Body: { Query, ... }
 Response: Pages[] + RequestId + Version + Msg
 ```
 
-- API Key 只在服务端接收并加密；任何接口不返回完整 Key
-- 请求层统一处理超时、重试、取消、HTTP/业务错误
-- 每条结果保留 `RequestId`；证据与报告可回到具体请求
-- 真实任务需要 `YUANBAO_SEARCH_ENABLED=true` 并通过连接测试
-- Mock 任务显式隔离，不进入真实指标或正式报告
-
-本次真实样本（10 个问题，第二轮复测）：
-
-| 指标 | 结果 |
-| --- | --- |
-| 成功问题 / 返回结果 | 10 / 10，98 条 |
-| 单请求耗时 | 81–385ms（本次样本） |
-| 品牌提及问题率 | 6 / 10 = 60% |
-| 官网结果覆盖率 | 0 / 10 = 0% |
-| 第三方页面覆盖率 | 6 / 10 = 60% |
-| 竞品提及率 | 豆包 70% / Kimi 70% |
-
-> 官网 0% 是“已配置 `yuanbao.tencent.com`，但本次 98 条结果没有官网页面”，不是“未配置官网”的占位值。
-
 更多：[docs/yuanbao-integration.md](docs/yuanbao-integration.md) · [docs/geo-analysis.md](docs/geo-analysis.md)
-
----
 
 ---
 
@@ -299,4 +207,20 @@ Response: Pages[] + RequestId + Version + Msg
 
 [MIT](LICENSE) © 2026 Leterhong
 
-> GEO Radar 是独立开源项目，与腾讯云/元宝搜索无隶属关系；元宝搜索为外部数据源。
+---
+
+## Acknowledgements
+
+- [腾讯云元宝搜索](https://cloud.tencent.com/product/wsa) — 真实网页检索能力
+- [Next.js](https://nextjs.org/)、[React](https://react.dev/)、[TypeScript](https://www.typescriptlang.org/)
+- [Prisma](https://www.prisma.io/)、[PostgreSQL](https://www.postgresql.org/)
+- [Radix UI](https://www.radix-ui.com/)、[Tailwind CSS](https://tailwindcss.com/)、[Recharts](https://recharts.org/)
+- [Vitest](https://vitest.dev/)、[Playwright](https://playwright.dev/)
+
+> GEO Radar 是独立开源项目，与腾讯云/元宝搜索无隶属关系；元宝搜索为其外部数据源。
+
+<div align="center">
+
+**如果这个项目对你有帮助，欢迎 Star ⭐**
+
+</div>
