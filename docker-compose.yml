@@ -4,12 +4,12 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: georadar
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change_me_in_production}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?请在 .env.docker 中设置 POSTGRES_PASSWORD}
       POSTGRES_DB: georadar
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
-      - "15432:5432"
+      - "${POSTGRES_PORT:-15432}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U georadar -d georadar"]
       interval: 5s
@@ -23,14 +23,28 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://georadar:${POSTGRES_PASSWORD:-change_me_in_production}@db:5432/georadar
-      AUTH_SECRET: ${AUTH_SECRET:?请在 .env 或环境中设置 AUTH_SECRET}
-      CREDENTIAL_ENCRYPTION_KEY: ${CREDENTIAL_ENCRYPTION_KEY:?请在 .env 或环境中设置 CREDENTIAL_ENCRYPTION_KEY}
+      DATABASE_URL: postgresql://georadar:${POSTGRES_PASSWORD}@db:5432/georadar
+      AUTH_SECRET: ${AUTH_SECRET:?请在 .env.docker 中设置 AUTH_SECRET}
+      CREDENTIAL_ENCRYPTION_KEY: ${CREDENTIAL_ENCRYPTION_KEY:?请在 .env.docker 中设置 CREDENTIAL_ENCRYPTION_KEY}
       YUANBAO_SEARCH_ENABLED: ${YUANBAO_SEARCH_ENABLED:-false}
       SEARCH_CONCURRENCY: ${SEARCH_CONCURRENCY:-2}
       SEARCH_TIMEOUT_MS: ${SEARCH_TIMEOUT_MS:-30000}
+      APP_URL: ${APP_URL:-http://localhost:3000}
+      CRON_SECRET: ${CRON_SECRET:-}
     ports:
-      - "3000:3000"
+      - "${APP_PORT:-3000}:3000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/login').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
 
 volumes:
   pgdata:

@@ -14,7 +14,7 @@
 
 ## 参赛视频
 
-[GEO-Radar-元宝搜索实战演示-1440p.mp4](<assets/video/GEO-Radar-元宝搜索实战演示-1440p.mp4>)
+[GEO-Radar-元宝搜索实战演示-1440p.mp4](https://github.com/Leterhong/GEO-Radar/releases/download/v0.1.0/GEO-Radar-yuanbao-demo-1440p.mp4)
 
 - 时长：7 分 57 秒
 - 画质：2560×1440

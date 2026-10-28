@@ -16,7 +16,13 @@
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![Status](https://img.shields.io/badge/status-prototype-orange)](#已知限制)
 
-[快速开始](#快速开始) · [核心能力](#核心能力) · [架构](#架构) · [元宝搜索接入](#元宝搜索接入) · [演示视频](#演示视频) · [文档](#文档)
+[Live site](https://leterhong.github.io/GEO-Radar/) · [快速开始](#快速开始) · [核心能力](#核心能力) · [架构](#架构) · [元宝搜索接入](#元宝搜索接入) · [演示视频](#演示视频) · [文档](#文档)
+
+**[简体中文](README.md) · [English](README.en.md)**
+
+<img src="docs/assets/readme/demo.gif" alt="GEO Radar 证据详情演示：原始层不可变，分析层可复核" width="960" />
+
+<sub>证据详情：元宝搜索原始结果 / RequestId 与规则分析、人工复核分层保存</sub>
 
 </div>
 
@@ -232,6 +238,31 @@ Response: Pages[] + RequestId + Version + Msg
 - PostgreSQL **14+**（本地、Docker 或云数据库均可）
 - 可选：元宝搜索 SearchPro 服务 API Key（不配置也可以先用 Mock 模式体验）
 
+### 方式 0：Docker Compose 一键启动（推荐体验）
+
+前置条件：Docker Desktop（Windows/macOS）或 Docker Engine + Compose v2。
+
+```bash
+git clone https://github.com/Leterhong/GEO-Radar.git
+cd GEO-Radar
+npm run docker:up
+```
+
+首次运行会自动生成 `.env.docker`（随机 secrets，不提交 Git），构建镜像、启动 PostgreSQL 和应用，并等待健康检查通过。默认访问：
+
+```text
+http://localhost:3000
+```
+
+停止 / 看日志：
+
+```bash
+npm run docker:down
+npm run docker:logs
+```
+
+> Docker 镜像使用 Next.js standalone + PostgreSQL 16；首次构建需要下载依赖和镜像。若本机已有 3000/15432 端口占用，可设置 `APP_PORT=3300 POSTGRES_PORT=15433 npm run docker:up`。
+
 ### 方式 A：内嵌 PostgreSQL（最简单，无需安装）
 
 > 内嵌数据库脚本当前主要面向 Windows（`@embedded-postgres/windows-x64`）；Linux/macOS 请使用方式 B 或 C。
@@ -377,11 +408,11 @@ docs/                    架构、数据字典、API、部署、证据链、案�
 
 ## 演示视频
 
-[![GEO Radar 元宝搜索实战演示](docs/assets/readme/hero.jpg)](docs/assets/video/GEO-Radar-元宝搜索实战演示-1440p.mp4)
+[![GEO Radar 元宝搜索实战演示](docs/assets/readme/hero.jpg)](https://github.com/Leterhong/GEO-Radar/releases/download/v0.1.0/GEO-Radar-yuanbao-demo-1440p.mp4)
 
 **7 分 57 秒 · 1440p · 真实元宝搜索调用 + 平台完整流程**
 
-[▶ 观看完整演示](docs/assets/video/GEO-Radar-元宝搜索实战演示-1440p.mp4) · [字幕](docs/assets/video/georadar-yuanbao-tour.srt)
+[▶ 观看完整演示](https://github.com/Leterhong/GEO-Radar/releases/download/v0.1.0/GEO-Radar-yuanbao-demo-1440p.mp4) · [字幕](docs/assets/video/georadar-yuanbao-tour.srt)
 
 视频主线：
 

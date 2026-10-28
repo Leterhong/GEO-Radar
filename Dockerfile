@@ -14,6 +14,12 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
+# 构建期占位值；运行时由 docker-compose 注入真实值
+ENV DATABASE_URL="postgresql://georadar:build_placeholder@127.0.0.1:5432/georadar"
+ENV AUTH_SECRET="build-only-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+ENV CREDENTIAL_ENCRYPTION_KEY="build-only-0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+ENV YUANBAO_SEARCH_ENABLED=false
+ENV APP_URL=http://127.0.0.1:3000
 RUN npx prisma generate && npm run build
 
 # 运行镜像

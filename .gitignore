@@ -13,6 +13,7 @@ dist/
 .env
 .env.local
 .env*.local
+.env.docker
 
 # testing
 coverage/
@@ -35,6 +36,7 @@ docs/assets/video/yuanbao-screens/
 docs/assets/video/work/
 docs/assets/video/work-yuanbao/
 docs/assets/video/voice-*
+docs/assets/video/*.mp4
 docs/assets/video/cover.png
 docs/assets/video/cover-yuanbao.png
 docs/assets/video/georadar-feature-tour.srt

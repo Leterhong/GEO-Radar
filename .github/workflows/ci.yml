@@ -64,3 +64,40 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  docker:
+    name: Docker Compose one-click
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare demo env
+        run: |
+          cat > .env.docker <<'EOF'
+          POSTGRES_PASSWORD=ci_docker_pw
+          AUTH_SECRET=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+          CREDENTIAL_ENCRYPTION_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+          CRON_SECRET=ci_docker_cron
+          YUANBAO_SEARCH_ENABLED=false
+          APP_URL=http://localhost:3000
+          APP_PORT=3000
+          POSTGRES_PORT=15432
+          EOF
+
+      - name: Build and start via Compose
+        run: docker compose --env-file .env.docker up -d --build --wait
+
+      - name: Smoke test
+        run: |
+          curl -fsS http://localhost:3000/login > /dev/null
+          docker compose --env-file .env.docker ps
+
+      - name: Dump logs on failure
+        if: failure()
+        run: docker compose --env-file .env.docker logs --no-color
+
+      - name: Stop
+        if: always()
+        run: docker compose --env-file .env.docker down -v
