@@ -455,6 +455,10 @@ async function triggerSchedule(
     where: { id: run.id },
     data: { status: "RUNNING", startedAt: new Date() },
   });
+  await prisma.schedule.update({
+    where: { id: schedule.id },
+    data: { lastRunAt: new Date(), lastRunStatus: "RUNNING" },
+  });
 
   // 后台执行，不阻塞调度 tick；完成后回写执行状态
   const executorId = userId ?? schedule.createdById;

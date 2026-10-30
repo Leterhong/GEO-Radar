@@ -36,6 +36,18 @@ export function OverviewTrendChart({
       </div>
     );
   }
+  if (data.length < 2) {
+    return (
+      <div className="rounded-xl border border-border bg-card p-5">
+        <h3 className="text-[15px] font-semibold">品牌出现趋势</h3>
+        <EmptyState
+          title="当前只有一轮有效采集"
+          description="趋势图需要至少两轮不同日期的真实采集。完成更多轮次后即可查看品牌、官网与第三方页面的变化，不会用单轮数据伪造趋势。"
+          className="mt-4 border-none py-8"
+        />
+      </div>
+    );
+  }
   const chartData = data.map((d) => ({
     ...d,
     rate: d.appearanceRate === null ? null : Number((d.appearanceRate * 100).toFixed(1)),

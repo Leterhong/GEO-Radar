@@ -126,7 +126,7 @@ export async function computeOverviewMetrics(
     prisma.searchTaskItem.count({ where: { workspaceId, status: "FAILED", task: { executionMode: "REAL", source: "LAB", brandId: brandId ?? undefined } } }),
     prisma.optimizationTask.count({ where: { workspaceId, status: { in: ["OPEN", "IN_PROGRESS", "NEEDS_VERIFICATION"] }, brandId: brandId ?? undefined } }),
     prisma.brand.count({ where: { workspaceId } }),
-    prisma.competitor.count({ where: { workspaceId, brandId: brandId ?? undefined } }),
+    prisma.competitor.count({ where: { workspaceId, brandId: brandId ?? undefined, enabled: true } }),
     prisma.question.count({ where: { workspaceId, enabled: true } }),
     prisma.evidence.count({ where: { workspaceId, isMock: false, brandId: brandId ?? undefined } }),
     prisma.searchTask.count({ where: { workspaceId, status: "FAILED", brandId: brandId ?? undefined } }),
