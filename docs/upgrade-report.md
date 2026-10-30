@@ -61,6 +61,12 @@
 - 趋势新增官网与第三方覆盖率；未配置官网时官网趋势返回空值而不是 0%。
 - 优化建议去重覆盖 `NEEDS_VERIFICATION`，避免验证阶段重复生成同类型建议。
 
+### Agent / MCP 权限
+
+- Token 设置页新增「只读 Token」选项
+- 只读 Token 仅允许 GET 查询；写操作返回 `403 TOKEN_SCOPE_DENIED`
+- 读写 Token 保持原有 MCP/CLI 能力
+
 ### 报告
 
 - 报告详情新增「打印 / PDF」按钮，使用浏览器打印为 PDF

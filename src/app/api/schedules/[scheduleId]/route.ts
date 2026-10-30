@@ -1,4 +1,4 @@
-import { withAuth, parseBody, apiFail } from "@/server/api/helpers";
+import { parseBody, apiFail, withWriteAuth } from "@/server/api/helpers";
 import { updateSchedule, cancelSchedule, ScheduleError } from "@/server/services/schedule-service";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -29,7 +29,7 @@ const updateSchema = z.object({
 });
 
 export async function PATCH(request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     const body = await parseBody(request, updateSchema);
     try {
       const schedule = await updateSchedule(workspaceId, user.id, params.scheduleId, body);
@@ -43,7 +43,7 @@ export async function PATCH(request: Request, { params }: Params) {
 
 /** 取消排期（保留执行历史；不删除已产生的任务）。 */
 export async function DELETE(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     try {
       const schedule = await cancelSchedule(workspaceId, user.id, params.scheduleId);
       return NextResponse.json({ ok: true, data: schedule });

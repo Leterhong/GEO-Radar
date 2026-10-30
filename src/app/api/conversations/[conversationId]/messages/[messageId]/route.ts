@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, apiFail, writeAuditLog } from "@/server/api/helpers";
+import { apiFail, writeAuditLog, withWriteAuth } from "@/server/api/helpers";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -8,7 +8,7 @@ type Params = { params: { conversationId: string; messageId: string } };
 
 /** 删除消息（软删除）：保留执行记录与证据关联，不物理删除历史答案。 */
 export async function DELETE(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     const message = await prisma.conversationMessage.findFirst({
       where: {
         id: params.messageId,

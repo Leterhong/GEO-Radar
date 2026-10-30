@@ -34,7 +34,7 @@ packages/dsh-geo-radar/            DSH 插件（纯声明，挂载 MCP）
 
 ## 1. 创建 Workspace API Token
 
-Token 是 workspace 级凭证，明文只显示一次，服务端只存 SHA-256 哈希。
+Token 是 workspace 级凭证，明文只显示一次，服务端只存 SHA-256 哈希。创建时可选择只读或读写。
 
 ### 方式 A：CLI
 
@@ -140,7 +140,7 @@ MCP SMOKE PASSED
 ### 安全边界
 
 - MCP 不生成搜索结果或指标，全部来自 GEO Radar API。
-- Token 是 workspace 级凭证，当前拥有该 workspace 的读写权限；只放在可信 Agent 环境，不要提交到 Git。
+- Token 支持读写（默认）与只读两种权限；只读 Token 仅允许 GET，写操作返回 `403 TOKEN_SCOPE_DENIED`。只放在可信 Agent 环境，不要提交到 Git。
 - `geo_create_task` 只创建任务，不调用元宝搜索。
 - `geo_start_task` 对 `REAL` 任务要求 `confirmReal=true`，避免 Agent 自行消耗额度。
 - 测试流程优先 `MOCK`。

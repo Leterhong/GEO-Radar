@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, apiFail } from "@/server/api/helpers";
+import { apiFail, withReadAuth } from "@/server/api/helpers";
 import {
   buildRoundDataset,
   findLatestRoundTaskId,
@@ -18,7 +18,7 @@ export const dynamic = "force-dynamic";
  * - ?brandId=：未指定 taskId 时取该品牌最近一次有效真实任务
  */
 export async function GET(request: Request) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const url = new URL(request.url);
     const taskId = url.searchParams.get("taskId");
     const brandId = url.searchParams.get("brandId");

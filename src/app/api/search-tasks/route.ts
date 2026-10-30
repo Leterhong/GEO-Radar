@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, parseBody, apiFail } from "@/server/api/helpers";
+import { parseBody, apiFail, withReadAuth, withWriteAuth } from "@/server/api/helpers";
 import { searchTaskCreateSchema } from "@/lib/validation/schemas";
 import { createSearchTask, SearchExecutionError } from "@/server/services/search-execution";
 import { NextResponse } from "next/server";
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 
 export async function GET(request: Request) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const url = new URL(request.url);
     const status = url.searchParams.get("status") ?? undefined;
     const brandId = url.searchParams.get("brandId") ?? undefined;
@@ -45,7 +45,7 @@ export async function GET(request: Request) {
  */
 export async function POST(request: Request) {
   try {
-    return await withAuth(async ({ workspaceId, user }) => {
+    return await withWriteAuth(async ({ workspaceId, user }) => {
       const body = await parseBody(request, searchTaskCreateSchema);
       try {
         const task = await createSearchTask(workspaceId, user.id, {

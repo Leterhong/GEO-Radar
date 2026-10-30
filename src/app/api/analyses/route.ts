@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, parseBody, apiFail } from "@/server/api/helpers";
+import { parseBody, apiFail, withReadAuth, withWriteAuth } from "@/server/api/helpers";
 import { createAnalysisTask, AnalysisError } from "@/server/services/analysis/analysis-service";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -15,7 +15,7 @@ const createSchema = z.object({
 });
 
 export async function GET(request: Request) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const url = new URL(request.url);
     const status = url.searchParams.get("status") ?? undefined;
     const tasks = await prisma.analysisTask.findMany({
@@ -51,7 +51,7 @@ export async function GET(request: Request) {
 
 /** 创建分析任务：只读取已保存数据，不发起任何外部搜索或模型调用。 */
 export async function POST(request: Request) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     const body = await parseBody(request, createSchema);
     try {
       const task = await createAnalysisTask(workspaceId, user.id, {

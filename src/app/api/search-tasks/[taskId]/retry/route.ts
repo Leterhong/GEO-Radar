@@ -1,4 +1,4 @@
-import { withAuth, apiFail, handleApiError } from "@/server/api/helpers";
+import { apiFail, handleApiError, withTasksRunAuth } from "@/server/api/helpers";
 import { retryFailedItems, SearchExecutionError } from "@/server/services/search-execution";
 import { NextResponse } from "next/server";
 
@@ -6,7 +6,7 @@ type Params = { params: { taskId: string } };
 
 export async function POST(_request: Request, { params }: Params) {
   try {
-    return await withAuth(async ({ workspaceId, user }) => {
+    return await withTasksRunAuth(async ({ workspaceId, user }) => {
       // 重试同样为异步执行，进度通过任务详情轮询
       const task = await prisma.searchTask.findFirst({ where: { id: params.taskId, workspaceId } });
       if (!task) return apiFail(404, "NOT_FOUND", "任务不存在或不属于当前工作空间。");

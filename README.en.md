@@ -117,7 +117,7 @@ dsh plugin --profile web add "$PWD/packages/dsh-geo-radar"
 - `geo_create_task` only creates a QUEUED task; it does not search.
 - `geo_start_task` refuses REAL tasks unless `confirmReal=true`.
 - Prefer MOCK for workflow tests; MCP never invents metrics or results.
-- A token has workspace read/write access; keep it in trusted agent environments and never commit it.
+- Tokens are read/write by default; read-only tokens allow GET only and return `403` on writes. Keep tokens in trusted agent environments and never commit them.
 
 ---
 

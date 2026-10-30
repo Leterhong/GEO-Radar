@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth } from "@/server/api/helpers";
+import { withReadAuth } from "@/server/api/helpers";
 import { computeOverviewMetrics, computeBrandTrend, computeSourceDomains, computeCompetitorMetrics } from "@/server/services/metrics";
 
 // API 路由始终动态渲染（依赖会话 Cookie），避免构建期静态化尝试
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 /** 大屏数据：需要登录；只读已保存数据，不会触发任何搜索。 */
 export async function GET(request: Request) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const url = new URL(request.url);
     const brandId = url.searchParams.get("brandId") ?? undefined;
     const days = Math.min(365, Math.max(1, Number(url.searchParams.get("days") ?? "30")));

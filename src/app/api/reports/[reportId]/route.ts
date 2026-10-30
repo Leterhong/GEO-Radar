@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, parseBody, apiFail } from "@/server/api/helpers";
+import { parseBody, apiFail, withReadAuth, withReportsWriteAuth } from "@/server/api/helpers";
 import { getReportOrThrow, ReportError } from "@/server/services/analysis/report-service";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -11,7 +11,7 @@ type Params = { params: { reportId: string } };
 const patchSchema = z.object({ title: z.string().trim().min(1).max(150) });
 
 export async function GET(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     try {
       const report = await getReportOrThrow(workspaceId, params.reportId);
       return {
@@ -38,7 +38,7 @@ export async function GET(_request: Request, { params }: Params) {
 }
 
 export async function PATCH(request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReportsWriteAuth(async ({ workspaceId }) => {
     const existing = await prisma.report.findFirst({ where: { id: params.reportId, workspaceId } });
     if (!existing) return apiFail(404, "NOT_FOUND", "报告不存在或不属于当前工作空间。");
     const body = await parseBody(request, patchSchema);
@@ -48,7 +48,7 @@ export async function PATCH(request: Request, { params }: Params) {
 }
 
 export async function DELETE(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReportsWriteAuth(async ({ workspaceId }) => {
     const existing = await prisma.report.findFirst({ where: { id: params.reportId, workspaceId } });
     if (!existing) return apiFail(404, "NOT_FOUND", "报告不存在或不属于当前工作空间。");
     await prisma.report.delete({ where: { id: existing.id } });

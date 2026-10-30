@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, apiFail } from "@/server/api/helpers";
+import { apiFail, withReadAuth } from "@/server/api/helpers";
 
 // API 路由始终动态渲染（依赖会话 Cookie），避免构建期静态化尝试
 
@@ -10,7 +10,7 @@ type Params = { params: { conversationId: string; runId: string } };
 
 /** 轮询单个 Run 的真实状态：阶段、消息、来源与错误。 */
 export async function GET(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const run = await prisma.conversationRun.findFirst({
       where: { id: params.runId, conversationId: params.conversationId, conversation: { workspaceId } },
       include: { assistantMessage: true },

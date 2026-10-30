@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, parseBody, apiFail } from "@/server/api/helpers";
+import { parseBody, apiFail, withWriteAuth } from "@/server/api/helpers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -16,7 +16,7 @@ const updateSchema = z.object({
 });
 
 export async function PATCH(request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withWriteAuth(async ({ workspaceId }) => {
     const existing = await prisma.optimizationEvent.findFirst({ where: { id: params.eventId, workspaceId } });
     if (!existing) return apiFail(404, "NOT_FOUND", "事件不存在或不属于当前工作空间。");
     const body = await parseBody(request, updateSchema);
@@ -41,7 +41,7 @@ export async function PATCH(request: Request, { params }: Params) {
 }
 
 export async function DELETE(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withWriteAuth(async ({ workspaceId }) => {
     const existing = await prisma.optimizationEvent.findFirst({ where: { id: params.eventId, workspaceId } });
     if (!existing) return apiFail(404, "NOT_FOUND", "事件不存在或不属于当前工作空间。");
     await prisma.optimizationEvent.delete({ where: { id: existing.id } });

@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, apiFail } from "@/server/api/helpers";
+import { apiFail, withReadAuth, withWriteAuth } from "@/server/api/helpers";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 type Params = { params: { analysisId: string } };
 
 export async function GET(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const task = await prisma.analysisTask.findFirst({
       where: { id: params.analysisId, workspaceId },
       include: { brand: { select: { id: true, name: true, websiteDomain: true } }, reports: { select: { id: true, title: true, generatedAt: true } } },
@@ -52,7 +52,7 @@ export async function GET(_request: Request, { params }: Params) {
 }
 
 export async function DELETE(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withWriteAuth(async ({ workspaceId }) => {
     const task = await prisma.analysisTask.findFirst({ where: { id: params.analysisId, workspaceId } });
     if (!task) return apiFail(404, "NOT_FOUND", "分析任务不存在或不属于当前工作空间。");
     // 报告通过 onDelete: SetNull 保留快照，不随任务删除而丢失

@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, apiFail } from "@/server/api/helpers";
+import { apiFail, withReadAuth } from "@/server/api/helpers";
 import { computeCompetitorMetrics, computeOverviewMetrics } from "@/server/services/metrics";
 
 // API 路由始终动态渲染（依赖会话 Cookie），避免构建期静态化尝试
@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 
 export async function GET(request: Request) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const url = new URL(request.url);
     const brandId = url.searchParams.get("brandId");
     if (!brandId) return apiFail(400, "BRAND_REQUIRED", "请先选择品牌。");

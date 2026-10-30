@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "crypto";
 import { env } from "@/lib/env";
-import { withAuth, apiFail } from "@/server/api/helpers";
+import { apiFail, withWriteAuth } from "@/server/api/helpers";
 import { runDueSchedules } from "@/server/services/schedule-service";
 import { NextResponse } from "next/server";
 
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: true, data: result });
   }
 
-  return withAuth(async ({ workspaceId }) => {
+  return withWriteAuth(async ({ workspaceId }) => {
     const result = await runDueSchedules({ workspaceId, limit: 10 });
     return { ...result, mode: "WORKSPACE_ONLY", note: "未配置 CRON_SECRET，仅处理当前工作空间。" };
   });

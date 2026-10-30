@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, parseBody, apiFail, writeAuditLog } from "@/server/api/helpers";
+import { parseBody, apiFail, writeAuditLog, withReadAuth, withWriteAuth } from "@/server/api/helpers";
 import { evidenceReviewSchema } from "@/lib/validation/schemas";
 import { z } from "zod";
 import { NextResponse } from "next/server";
@@ -26,7 +26,7 @@ const PAGE_TYPES = [
 ] as const;
 
 export async function GET(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const evidence = await prisma.evidence.findFirst({
       where: { id: params.evidenceId, workspaceId },
       include: {
@@ -75,7 +75,7 @@ const patchSchema = evidenceReviewSchema.partial().extend({
  * - 每次变更写入 EvidenceReview（操作人、时间、前后值）。
  */
 export async function PATCH(request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     const existing = await prisma.evidence.findFirst({ where: { id: params.evidenceId, workspaceId } });
     if (!existing) return apiFail(404, "NOT_FOUND", "证据不存在或不属于当前工作空间。");
     const body = await parseBody(request, patchSchema);
@@ -190,7 +190,7 @@ export async function PATCH(request: Request, { params }: Params) {
 
 /** 删除证据记录（不删除原始搜索任务与结果，原始数据仍可在任务详情中追溯）。 */
 export async function DELETE(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     const existing = await prisma.evidence.findFirst({ where: { id: params.evidenceId, workspaceId } });
     if (!existing) return apiFail(404, "NOT_FOUND", "证据不存在或不属于当前工作空间。");
     await prisma.evidence.update({

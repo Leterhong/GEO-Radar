@@ -1,4 +1,4 @@
-import { withAuth, parseBody, handleApiError } from "@/server/api/helpers";
+import { parseBody, handleApiError, withReadAuth, withWriteAuth } from "@/server/api/helpers";
 import {
   getMaskedModelConfig,
   saveModelConfig,
@@ -23,7 +23,7 @@ const saveSchema = z.object({
 
 /** 大模型配置（脱敏读取）：与元宝密钥分开存储，永不返回完整 Key。 */
 export async function GET() {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const config = await getMaskedModelConfig(workspaceId);
     return NextResponse.json({ ok: true, data: config });
   });
@@ -31,7 +31,7 @@ export async function GET() {
 
 export async function PUT(request: Request) {
   try {
-    return await withAuth(async ({ workspaceId, user }) => {
+    return await withWriteAuth(async ({ workspaceId, user }) => {
       const body = await parseBody(request, saveSchema);
       const { maskedKey } = await saveModelConfig(workspaceId, user.id, body);
       const config = await getMaskedModelConfig(workspaceId);
@@ -43,7 +43,7 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE() {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     await clearModelConfig(workspaceId, user.id);
     const config = await getMaskedModelConfig(workspaceId);
     return NextResponse.json({ ok: true, data: config });

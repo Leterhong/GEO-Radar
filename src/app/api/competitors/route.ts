@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, parseBody, apiFail } from "@/server/api/helpers";
+import { parseBody, apiFail, withReadAuth, withWriteAuth } from "@/server/api/helpers";
 import { competitorSchema } from "@/lib/validation/schemas";
 import { extractWebsiteDomain } from "@/server/services/domain-normalization";
 import { NextResponse } from "next/server";
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 
 export async function GET() {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const competitors = await prisma.competitor.findMany({
       where: { workspaceId },
       orderBy: { createdAt: "desc" },
@@ -20,7 +20,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  return withAuth(async ({ workspaceId }) => {
+  return withWriteAuth(async ({ workspaceId }) => {
     const body = await parseBody(request, competitorSchema);
     const brand = await prisma.brand.findFirst({ where: { id: body.brandId, workspaceId } });
     if (!brand) return apiFail(404, "BRAND_NOT_FOUND", "关联品牌不存在或不属于当前工作空间。");

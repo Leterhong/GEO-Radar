@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, parseBody, apiFail } from "@/server/api/helpers";
+import { parseBody, apiFail, withReadAuth, withWriteAuth } from "@/server/api/helpers";
 import { questionSchema } from "@/lib/validation/schemas";
 import { publishQuestionSetVersion } from "@/server/services/question-set-service";
 import { NextResponse } from "next/server";
@@ -10,7 +10,7 @@ import type { Prisma } from "@prisma/client";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const url = new URL(request.url);
     const questionSetId = url.searchParams.get("questionSetId") ?? undefined;
     const search = url.searchParams.get("search") ?? undefined;
@@ -54,7 +54,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     const body = await parseBody(request, questionSchema);
     const set = await prisma.questionSet.findFirst({
       where: { id: body.questionSetId, workspaceId, archivedAt: null },

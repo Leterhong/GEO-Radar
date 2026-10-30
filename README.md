@@ -119,7 +119,7 @@ dsh plugin --profile web add "$PWD/packages/dsh-geo-radar"
 - `geo_create_task` 只创建 `QUEUED` 任务，不调用搜索。
 - `geo_start_task` 对 `REAL` 任务强制要求 `confirmReal=true`，避免 Agent 自行消耗额度。
 - 测试流程优先 `MOCK`；MCP 不伪造指标或搜索结果。
-- Token 拥有该 workspace 的读写权限；只放在可信 Agent 环境，不要提交到 Git。
+- Token 默认拥有 workspace 读写权限，也可创建只读 Token；只读 Token 仅允许查询，写操作返回 `403`。只放在可信 Agent 环境，不要提交到 Git。
 
 ---
 

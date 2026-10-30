@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, apiFail, writeAuditLog } from "@/server/api/helpers";
+import { apiFail, writeAuditLog, withReadAuth, withWriteAuth } from "@/server/api/helpers";
 import { parseCsv, sanitizeCsvInput } from "@/lib/csv";
 import { publishQuestionSetVersion } from "@/server/services/question-set-service";
 import { NextResponse } from "next/server";
@@ -14,7 +14,7 @@ interface ImportRowError {
 
 /** CSV 批量导入问题：先校验全部行，再统一写入；错误行逐一报告，不静默跳过。 */
 export async function POST(request: Request) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     let body: { questionSetId?: string; csv?: string; text?: string };
     try {
       body = (await request.json()) as typeof body;
@@ -128,7 +128,7 @@ export async function POST(request: Request) {
 
 /** 导出问题列表为 CSV（仅限当前工作空间）。 */
 export async function GET() {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const questions = await prisma.question.findMany({
       where: { workspaceId },
       orderBy: { createdAt: "desc" },

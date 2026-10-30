@@ -1,4 +1,4 @@
-import { withAuth, apiFail } from "@/server/api/helpers";
+import { apiFail, withReadAuth } from "@/server/api/helpers";
 import {
   getReportOrThrow,
   getReportSnapshot,
@@ -26,7 +26,7 @@ type Params = { params: { reportId: string } };
  * - 搜索证据报告：md / html / csv（指标）/ questions-csv / evidence-csv
  */
 export async function GET(request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const url = new URL(request.url);
     const format = (url.searchParams.get("format") ?? "md").toLowerCase();
     try {

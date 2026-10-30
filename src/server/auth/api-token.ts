@@ -10,6 +10,7 @@ import { prisma } from "@/server/db/client";
 
 export const API_TOKEN_PREFIX = "gr_";
 export const API_TOKEN_SCOPES = ["read", "write", "tasks:run", "reports:write"] as const;
+export type ApiTokenScope = (typeof API_TOKEN_SCOPES)[number];
 
 export class ApiTokenError extends Error {
   constructor(

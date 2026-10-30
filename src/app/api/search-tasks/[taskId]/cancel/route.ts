@@ -1,4 +1,4 @@
-import { withAuth, apiFail, handleApiError } from "@/server/api/helpers";
+import { apiFail, handleApiError, withTasksRunAuth } from "@/server/api/helpers";
 import { cancelSearchTask, SearchExecutionError } from "@/server/services/search-execution";
 import { NextResponse } from "next/server";
 
@@ -11,7 +11,7 @@ type Params = { params: { taskId: string } };
 
 export async function POST(_request: Request, { params }: Params) {
   try {
-    return await withAuth(async ({ workspaceId, user }) => {
+    return await withTasksRunAuth(async ({ workspaceId, user }) => {
       try {
         await cancelSearchTask(params.taskId, workspaceId, user.id);
         return NextResponse.json({ ok: true, data: { accepted: true } });

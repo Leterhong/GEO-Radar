@@ -1,4 +1,4 @@
-import { withAuth, parseBody, apiFail } from "@/server/api/helpers";
+import { parseBody, apiFail, withReadAuth, withWriteAuth } from "@/server/api/helpers";
 import { createSchedule, listSchedules, ScheduleError } from "@/server/services/schedule-service";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -31,7 +31,7 @@ const createSchema = z.object({
 });
 
 export async function GET() {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const data = await listSchedules(workspaceId);
     return {
       ...data,
@@ -47,7 +47,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     const body = await parseBody(request, createSchema);
     try {
       const result = await createSchedule(workspaceId, user.id, {

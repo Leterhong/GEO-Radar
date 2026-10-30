@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, parseBody, apiFail } from "@/server/api/helpers";
+import { parseBody, apiFail, withReadAuth, withWriteAuth } from "@/server/api/helpers";
 import { optimizationTaskSchema } from "@/lib/validation/schemas";
 import { generateRecommendations } from "@/server/services/recommendations";
 import { NextResponse } from "next/server";
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 
 export async function GET(request: Request) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const url = new URL(request.url);
     const brandId = url.searchParams.get("brandId") ?? undefined;
     const status = url.searchParams.get("status") ?? undefined;
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
 
 /** 创建优化任务（手动）。 */
 export async function POST(request: Request) {
-  return withAuth(async ({ workspaceId }) => {
+  return withWriteAuth(async ({ workspaceId }) => {
     const url = new URL(request.url);
     // ?generate=true 触发规则引擎生成
     if (url.searchParams.get("generate") === "true") {

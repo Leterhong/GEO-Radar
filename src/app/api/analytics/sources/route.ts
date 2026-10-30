@@ -1,4 +1,4 @@
-import { withAuth } from "@/server/api/helpers";
+import { withReadAuth } from "@/server/api/helpers";
 import { computeSourceDomains } from "@/server/services/metrics";
 
 // API 路由始终动态渲染（依赖会话 Cookie），避免构建期静态化尝试
@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 
 export async function GET(request: Request) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const url = new URL(request.url);
     const brandId = url.searchParams.get("brandId") ?? undefined;
     const days = Math.min(365, Math.max(1, Number(url.searchParams.get("days") ?? "30")));

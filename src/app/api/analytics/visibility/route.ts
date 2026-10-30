@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, apiFail } from "@/server/api/helpers";
+import { apiFail, withReadAuth } from "@/server/api/helpers";
 import {
   computeOverviewMetrics,
   computeBrandTrend,
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 
 /** 品牌可见度页数据：必须指定品牌；仅统计真实数据。 */
 export async function GET(request: Request) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const url = new URL(request.url);
     const brandId = url.searchParams.get("brandId");
     if (!brandId) return apiFail(400, "BRAND_REQUIRED", "请先选择要分析的品牌。");

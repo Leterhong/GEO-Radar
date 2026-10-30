@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, parseBody, apiFail, writeAuditLog } from "@/server/api/helpers";
+import { parseBody, apiFail, writeAuditLog, withReadAuth, withWriteAuth } from "@/server/api/helpers";
 import { compareTasks } from "@/server/services/experiments";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -16,7 +16,7 @@ const createSchema = z.object({
 });
 
 export async function GET() {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const experiments = await prisma.auditLog.findMany({
       where: { workspaceId, action: "EXPERIMENT_CREATED" },
       orderBy: { createdAt: "desc" },
@@ -51,7 +51,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     const body = await parseBody(request, createSchema);
     if (body.baselineTaskId === body.retestTaskId) {
       return apiFail(400, "SAME_TASK", "基线任务与复测任务不能相同。");

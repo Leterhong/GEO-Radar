@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, parseBody, apiFail } from "@/server/api/helpers";
+import { parseBody, apiFail, withReadAuth, withWriteAuth } from "@/server/api/helpers";
 import { questionSetSchema } from "@/lib/validation/schemas";
 import { publishQuestionSetVersion, archiveQuestionSet, QuestionSetError } from "@/server/services/question-set-service";
 import { NextResponse } from "next/server";
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 type Params = { params: { questionSetId: string } };
 
 export async function GET(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const set = await prisma.questionSet.findFirst({
       where: { id: params.questionSetId, workspaceId },
       include: {
@@ -25,7 +25,7 @@ export async function GET(_request: Request, { params }: Params) {
 }
 
 export async function PATCH(request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     const existing = await prisma.questionSet.findFirst({ where: { id: params.questionSetId, workspaceId } });
     if (!existing) return apiFail(404, "NOT_FOUND", "问题集不存在或不属于当前工作空间。");
     const body = await parseBody(request, questionSetSchema.partial());
@@ -50,7 +50,7 @@ export async function PATCH(request: Request, { params }: Params) {
 
 /** 归档（不物理删除）：历史任务、版本快照与证据保持可追溯；引用它的启用排期会自动暂停。 */
 export async function DELETE(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withWriteAuth(async ({ workspaceId }) => {
     try {
       await archiveQuestionSet(workspaceId, params.questionSetId);
       return NextResponse.json({ ok: true, data: { archived: true } });

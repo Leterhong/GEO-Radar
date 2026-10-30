@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, parseBody, apiFail } from "@/server/api/helpers";
+import { parseBody, apiFail, withReadAuth, withReportsWriteAuth } from "@/server/api/helpers";
 import { createReport, ReportError } from "@/server/services/analysis/report-service";
 import { createCollectionReport, CollectionReportError } from "@/server/services/collection-report-service";
 import { NextResponse } from "next/server";
@@ -19,7 +19,7 @@ const createSchema = z
   });
 
 export async function GET() {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const reports = await prisma.report.findMany({
       where: { workspaceId },
       orderBy: { generatedAt: "desc" },
@@ -51,7 +51,7 @@ export async function GET() {
  * 报告保存快照，不受后续数据变化影响。
  */
 export async function POST(request: Request) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withReportsWriteAuth(async ({ workspaceId, user }) => {
     const body = await parseBody(request, createSchema);
     if (body.taskId) {
       try {

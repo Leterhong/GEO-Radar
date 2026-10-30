@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, parseBody, apiFail } from "@/server/api/helpers";
+import { parseBody, apiFail, withWriteAuth } from "@/server/api/helpers";
 import { optimizationTaskUpdateSchema } from "@/lib/validation/schemas";
 import { NextResponse } from "next/server";
 
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 type Params = { params: { recommendationId: string } };
 
 export async function PATCH(request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withWriteAuth(async ({ workspaceId }) => {
     const existing = await prisma.optimizationTask.findFirst({
       where: { id: params.recommendationId, workspaceId },
     });
@@ -35,7 +35,7 @@ export async function PATCH(request: Request, { params }: Params) {
 }
 
 export async function DELETE(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withWriteAuth(async ({ workspaceId }) => {
     const existing = await prisma.optimizationTask.findFirst({
       where: { id: params.recommendationId, workspaceId },
     });

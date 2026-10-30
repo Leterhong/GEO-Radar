@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, apiFail, rateLimit } from "@/server/api/helpers";
+import { apiFail, rateLimit, withWriteAuth } from "@/server/api/helpers";
 import { reanalyzeTaskEvidence, SnapshotError } from "@/server/services/snapshot-service";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -18,7 +18,7 @@ const schema = z.object({
  * 每个任务会生成 RECOMPUTE 快照，保留原 COLLECTION 快照。
  */
 export async function POST(request: Request) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     rateLimit(`evidence-reanalyze:${workspaceId}`, 3, 10 * 60 * 1000);
     const body = await request.json().catch(() => ({}));
     const parsed = schema.safeParse(body ?? {});

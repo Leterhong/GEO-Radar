@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, parseBody, writeAuditLog, apiFail } from "@/server/api/helpers";
+import { parseBody, writeAuditLog, apiFail, withReadAuth, withWriteAuth } from "@/server/api/helpers";
 import { brandSchema } from "@/lib/validation/schemas";
 import { extractWebsiteDomain } from "@/server/services/domain-normalization";
 import { NextResponse } from "next/server";
@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 type Params = { params: { brandId: string } };
 
 export async function GET(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const brand = await prisma.brand.findFirst({ where: { id: params.brandId, workspaceId } });
     if (!brand) return apiFail(404, "NOT_FOUND", "品牌不存在或不属于当前工作空间。");
     return NextResponse.json({ ok: true, data: brand });
@@ -20,7 +20,7 @@ export async function GET(_request: Request, { params }: Params) {
 }
 
 export async function PATCH(request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     const existing = await prisma.brand.findFirst({ where: { id: params.brandId, workspaceId } });
     if (!existing) return apiFail(404, "NOT_FOUND", "品牌不存在或不属于当前工作空间。");
     const body = await parseBody(request, brandSchema.partial());
@@ -56,7 +56,7 @@ export async function PATCH(request: Request, { params }: Params) {
 }
 
 export async function DELETE(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     const existing = await prisma.brand.findFirst({ where: { id: params.brandId, workspaceId } });
     if (!existing) return apiFail(404, "NOT_FOUND", "品牌不存在或不属于当前工作空间。");
     await prisma.$transaction([

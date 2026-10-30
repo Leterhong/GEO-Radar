@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, apiFail } from "@/server/api/helpers";
+import { apiFail, withReadAuth, withWriteAuth } from "@/server/api/helpers";
 import { createTaskSnapshot, reanalyzeTaskEvidence, SnapshotError } from "@/server/services/snapshot-service";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -13,7 +13,7 @@ const postSchema = z.object({
 });
 
 export async function GET(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const task = await prisma.searchTask.findFirst({
       where: { id: params.taskId, workspaceId },
       select: { id: true, name: true, status: true, questionSetVersion: true, questionSetVersionId: true },
@@ -43,7 +43,7 @@ export async function GET(_request: Request, { params }: Params) {
  * - COLLECTION：为已完成任务补建采集快照（若同规则快照已存在则直接返回）
  */
 export async function POST(request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     const body = (await request.json().catch(() => ({}))) ?? {};
     const parsed = postSchema.safeParse(body);
     if (!parsed.success) return apiFail(400, "VALIDATION_ERROR", "请求参数校验失败");

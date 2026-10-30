@@ -1,4 +1,4 @@
-import { withAuth, handleApiError, rateLimit } from "@/server/api/helpers";
+import { handleApiError, rateLimit, withWriteAuth } from "@/server/api/helpers";
 import { testCredentialConnection } from "@/server/services/provider-credential-service";
 import { NextResponse } from "next/server";
 
@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
  */
 export async function POST() {
   try {
-    return await withAuth(async ({ workspaceId, user }) => {
+    return await withWriteAuth(async ({ workspaceId, user }) => {
       rateLimit(`conn-test:${workspaceId}`, 6, 10 * 60 * 1000);
       const result = await testCredentialConnection(workspaceId, user.id);
       return NextResponse.json({

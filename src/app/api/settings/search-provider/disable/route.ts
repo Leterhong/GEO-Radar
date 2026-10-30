@@ -1,4 +1,4 @@
-import { withAuth, parseBody, handleApiError } from "@/server/api/helpers";
+import { parseBody, handleApiError, withWriteAuth } from "@/server/api/helpers";
 import { setCredentialDisabled, getMaskedCredentialConfig } from "@/server/services/provider-credential-service";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -13,7 +13,7 @@ const schema = z.object({ disabled: z.boolean() });
 /** 禁用 / 重新启用数据源。 */
 export async function POST(request: Request) {
   try {
-    return await withAuth(async ({ workspaceId, user }) => {
+    return await withWriteAuth(async ({ workspaceId, user }) => {
       const body = await parseBody(request, schema);
       await setCredentialDisabled(workspaceId, user.id, body.disabled);
       const config = await getMaskedCredentialConfig(workspaceId);

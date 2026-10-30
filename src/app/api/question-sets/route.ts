@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, parseBody, apiFail, writeAuditLog } from "@/server/api/helpers";
+import { parseBody, apiFail, writeAuditLog, withReadAuth, withWriteAuth } from "@/server/api/helpers";
 import { questionSetSchema } from "@/lib/validation/schemas";
 import { createInitialQuestionSetVersion, QuestionSetError } from "@/server/services/question-set-service";
 import { NextResponse } from "next/server";
@@ -9,7 +9,7 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const url = new URL(request.url);
     const includeArchived = url.searchParams.get("includeArchived") === "true";
     const sets = await prisma.questionSet.findMany({
@@ -39,7 +39,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     const body = await parseBody(request, questionSetSchema);
     try {
       const set = await prisma.$transaction(async (tx) => {

@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, parseBody, apiFail } from "@/server/api/helpers";
+import { parseBody, apiFail, withWriteAuth } from "@/server/api/helpers";
 import { competitorSchema } from "@/lib/validation/schemas";
 import { extractWebsiteDomain } from "@/server/services/domain-normalization";
 import { NextResponse } from "next/server";
@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 type Params = { params: { competitorId: string } };
 
 export async function PATCH(request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withWriteAuth(async ({ workspaceId }) => {
     const existing = await prisma.competitor.findFirst({ where: { id: params.competitorId, workspaceId } });
     if (!existing) return apiFail(404, "NOT_FOUND", "竞品不存在或不属于当前工作空间。");
     const body = await parseBody(request, competitorSchema.partial().omit({ brandId: true }));
@@ -37,7 +37,7 @@ export async function PATCH(request: Request, { params }: Params) {
 }
 
 export async function DELETE(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withWriteAuth(async ({ workspaceId }) => {
     const existing = await prisma.competitor.findFirst({ where: { id: params.competitorId, workspaceId } });
     if (!existing) return apiFail(404, "NOT_FOUND", "竞品不存在或不属于当前工作空间。");
     await prisma.competitor.delete({ where: { id: existing.id } });

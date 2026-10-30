@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, parseBody, apiFail } from "@/server/api/helpers";
+import { parseBody, apiFail, withReadAuth, withWriteAuth } from "@/server/api/helpers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -17,7 +17,7 @@ const patchSchema = z.object({
 });
 
 export async function GET(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const conversation = await prisma.conversation.findFirst({
       where: { id: params.conversationId, workspaceId },
     });
@@ -77,7 +77,7 @@ export async function GET(_request: Request, { params }: Params) {
 
 /** 重命名 / 切换当前模式（只影响后续新消息；不触发任何执行）。 */
 export async function PATCH(request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withWriteAuth(async ({ workspaceId }) => {
     const conversation = await prisma.conversation.findFirst({
       where: { id: params.conversationId, workspaceId },
     });
@@ -100,7 +100,7 @@ export async function PATCH(request: Request, { params }: Params) {
 
 /** 删除会话：级联删除消息/运行/引用；已保存的搜索任务与证据不受影响（SearchTask.runs SetNull）。 */
 export async function DELETE(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withWriteAuth(async ({ workspaceId }) => {
     const conversation = await prisma.conversation.findFirst({
       where: { id: params.conversationId, workspaceId },
     });

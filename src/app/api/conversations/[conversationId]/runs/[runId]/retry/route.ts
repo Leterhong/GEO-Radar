@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, apiFail, handleApiError } from "@/server/api/helpers";
+import { apiFail, handleApiError, withWriteAuth } from "@/server/api/helpers";
 import { startRun, ConversationError } from "@/server/services/conversation/orchestrator";
 import { NextResponse } from "next/server";
 
@@ -13,7 +13,7 @@ type Params = { params: { conversationId: string; runId: string } };
 /** 重新执行：沿用原 Run 的问题与模式（不改历史消息），产生新的用户消息与 Run。 */
 export async function POST(_request: Request, { params }: Params) {
   try {
-    return await withAuth(async ({ workspaceId, user }) => {
+    return await withWriteAuth(async ({ workspaceId, user }) => {
       const run = await prisma.conversationRun.findFirst({
         where: { id: params.runId, conversationId: params.conversationId, conversation: { workspaceId } },
         include: { userMessage: true },

@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, parseBody, apiFail, writeAuditLog } from "@/server/api/helpers";
+import { parseBody, apiFail, writeAuditLog, withReadAuth, withWriteAuth } from "@/server/api/helpers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -17,7 +17,7 @@ const createSchema = z.object({
 });
 
 export async function GET(request: Request) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const url = new URL(request.url);
     const brandId = url.searchParams.get("brandId") ?? undefined;
     const events = await prisma.optimizationEvent.findMany({
@@ -30,7 +30,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     const body = await parseBody(request, createSchema);
     if (body.brandId) {
       const brand = await prisma.brand.findFirst({ where: { id: body.brandId, workspaceId } });

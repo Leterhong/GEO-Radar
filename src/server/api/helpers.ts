@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { ZodError, type ZodSchema } from "zod";
 import { prisma } from "@/server/db/client";
 import { getCurrentUser, getActiveWorkspaceId } from "@/server/auth/session";
-import { resolveApiToken, ApiTokenError } from "@/server/auth/api-token";
+import { resolveApiToken, ApiTokenError, type ApiTokenScope } from "@/server/auth/api-token";
 import type { User } from "@prisma/client";
 
 export interface ApiErrorShape {
@@ -45,17 +45,21 @@ export function handleApiError(error: unknown) {
 }
 
 export async function withAuth<T>(
-  handler: (ctx: { user: User; workspaceId: string }) => Promise<T>
-): Promise<NextResponse> {
-  try {
+  handler: (ctx: { user: User; workspaceId: string }) => Promise<T>,
+  requiredScope?: ApiTokenScope
+): Promise<NextResponse> {  try {
     let user: User | null = null;
     let workspaceId: string | null = null;
+    let tokenScopes: string[] = [];
+    let fromApiToken = false;
 
     try {
       const tokenContext = await resolveApiToken();
       if (tokenContext) {
         user = tokenContext.user;
         workspaceId = tokenContext.workspaceId;
+        tokenScopes = tokenContext.scopes;
+        fromApiToken = true;
       }
     } catch (error) {
       if (error instanceof ApiTokenError) {
@@ -72,6 +76,13 @@ export async function withAuth<T>(
       if (!workspaceId) return apiFail(403, "NO_WORKSPACE", "尚未创建工作空间。");
     }
     if (!user || !workspaceId) return apiFail(401, "UNAUTHENTICATED", "无法解析登录身份。");
+    if (fromApiToken && requiredScope && !tokenScopes.includes(requiredScope)) {
+      return apiFail(
+        403,
+        "TOKEN_SCOPE_DENIED",
+        `该 API Token 缺少 ${requiredScope} 权限，不能执行此操作。请创建具备对应 scope 的 Token。`
+      );
+    }
 
     const data = await handler({ user, workspaceId });
     if (data instanceof NextResponse) return data;
@@ -79,6 +90,22 @@ export async function withAuth<T>(
   } catch (error) {
     return handleApiError(error);
   }
+}
+
+export function withReadAuth<T>(handler: (ctx: { user: User; workspaceId: string }) => Promise<T>) {
+  return withAuth(handler, "read");
+}
+
+export function withWriteAuth<T>(handler: (ctx: { user: User; workspaceId: string }) => Promise<T>) {
+  return withAuth(handler, "write");
+}
+
+export function withTasksRunAuth<T>(handler: (ctx: { user: User; workspaceId: string }) => Promise<T>) {
+  return withAuth(handler, "tasks:run");
+}
+
+export function withReportsWriteAuth<T>(handler: (ctx: { user: User; workspaceId: string }) => Promise<T>) {
+  return withAuth(handler, "reports:write");
 }
 
 export async function parseBody<T>(request: Request, schema: ZodSchema<T>): Promise<T> {

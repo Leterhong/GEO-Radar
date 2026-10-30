@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, writeAuditLog } from "@/server/api/helpers";
+import { writeAuditLog, withReadAuth, withWriteAuth } from "@/server/api/helpers";
 import { NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 /** 证据列表：关键词/品牌/域名/时间/状态/任务筛选，仅限当前工作空间。 */
 export async function GET(request: Request) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const url = new URL(request.url);
     const search = url.searchParams.get("search") ?? undefined;
     const brandId = url.searchParams.get("brandId") ?? undefined;
@@ -47,7 +47,7 @@ export async function GET(request: Request) {
 
 /** 导出证据 CSV（仅当前工作空间、仅限有权限的数据）。 */
 export async function POST(request: Request) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     const body = (await request.json().catch(() => ({}))) as { filters?: Record<string, string> };
     const f = body.filters ?? {};
     const where: Prisma.EvidenceWhereInput = {

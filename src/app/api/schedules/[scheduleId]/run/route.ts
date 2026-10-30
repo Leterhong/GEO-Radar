@@ -1,4 +1,4 @@
-import { withAuth, apiFail } from "@/server/api/helpers";
+import { apiFail, withWriteAuth } from "@/server/api/helpers";
 import { runScheduleNow, ScheduleError } from "@/server/services/schedule-service";
 import { NextResponse } from "next/server";
 
@@ -8,7 +8,7 @@ type Params = { params: { scheduleId: string } };
 
 /** 用户主动「立即执行」：创建真实任务并在后台执行；仍受成本确认与并发限制约束。 */
 export async function POST(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     try {
       const result = await runScheduleNow(workspaceId, user.id, params.scheduleId);
       return NextResponse.json({ ok: true, data: result });

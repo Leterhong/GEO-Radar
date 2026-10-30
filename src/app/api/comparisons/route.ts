@@ -1,11 +1,11 @@
-import { withAuth, apiFail } from "@/server/api/helpers";
+import { apiFail, withReadAuth } from "@/server/api/helpers";
 import { compareTaskRounds, ComparisonError } from "@/server/services/comparison-service";
 
 export const dynamic = "force-dynamic";
 
 /** 两轮采集比较（真实快照）。?baseline=&retest=&includeSeries=true */
 export async function GET(request: Request) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const url = new URL(request.url);
     const baselineTaskId = url.searchParams.get("baseline");
     const retestTaskId = url.searchParams.get("retest");

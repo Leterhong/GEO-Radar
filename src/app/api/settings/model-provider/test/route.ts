@@ -1,4 +1,4 @@
-import { withAuth, handleApiError, rateLimit } from "@/server/api/helpers";
+import { handleApiError, rateLimit, withWriteAuth } from "@/server/api/helpers";
 import { testModelConnection } from "@/server/services/model-credential-service";
 import { NextResponse } from "next/server";
 
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 /** 模型连接测试：发起一次最小真实请求（少量 Token 消耗），必须由用户主动点击。 */
 export async function POST() {
   try {
-    return await withAuth(async ({ workspaceId, user }) => {
+    return await withWriteAuth(async ({ workspaceId, user }) => {
       rateLimit(`model-test:${workspaceId}`, 6, 10 * 60 * 1000);
       const result = await testModelConnection(workspaceId, user.id);
       return NextResponse.json({

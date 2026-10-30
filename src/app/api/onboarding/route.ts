@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, apiFail, writeAuditLog } from "@/server/api/helpers";
+import { apiFail, writeAuditLog, withReadAuth, withWriteAuth } from "@/server/api/helpers";
 import { workspaceCreateSchema } from "@/lib/validation/schemas";
 import { extractWebsiteDomain } from "@/server/services/domain-normalization";
 import { setActiveWorkspace, getActiveWorkspaceId, isSecureRequest } from "@/server/auth/session";
@@ -25,7 +25,7 @@ const brandInputSchema = z.object({
  * 任何情况下都确保设置当前工作空间，完成后前端可直接进入首页。
  */
 export async function POST(request: Request) {
-  return withAuth(async ({ user }) => {
+  return withWriteAuth(async ({ user }) => {
     let body: { workspaceName?: string; brand?: { name?: string; websiteUrl?: string; description?: string } };
     try {
       body = (await request.json()) as typeof body;
@@ -104,7 +104,7 @@ export async function POST(request: Request) {
 
 /** 引导状态：前端与冒烟测试用于判断是否还需展示引导页。 */
 export async function GET() {
-  return withAuth(async ({ user }) => {
+  return withReadAuth(async ({ user }) => {
     const workspaceId = await getActiveWorkspaceId(user.id);
     const brandCount = workspaceId
       ? await prisma.brand.count({ where: { workspaceId } })

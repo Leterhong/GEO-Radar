@@ -1,4 +1,4 @@
-import { withAuth, parseBody, apiFail, handleApiError } from "@/server/api/helpers";
+import { parseBody, apiFail, handleApiError, withWriteAuth } from "@/server/api/helpers";
 import { startRun, ConversationError } from "@/server/services/conversation/orchestrator";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -20,7 +20,7 @@ const schema = z.object({
 /** 发起执行：创建 Run 并异步执行；页面加载/模式切换不会调用本接口。 */
 export async function POST(request: Request, { params }: Params) {
   try {
-    return await withAuth(async ({ workspaceId, user }) => {
+    return await withWriteAuth(async ({ workspaceId, user }) => {
       const body = await parseBody(request, schema);
       try {
         const result = await startRun(params.conversationId, workspaceId, user.id, {

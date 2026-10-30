@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth } from "@/server/api/helpers";
+import { withReadAuth } from "@/server/api/helpers";
 import { serializeCsv } from "@/lib/csv";
 import { NextResponse } from "next/server";
 
@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 /** 导出问题集为 CSV：用于备份、审阅和再用导入功能迁移。 */
 export async function GET(request: Request) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const url = new URL(request.url);
     const questionSetId = url.searchParams.get("questionSetId") || undefined;
     const questions = await prisma.question.findMany({

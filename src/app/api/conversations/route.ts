@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, parseBody } from "@/server/api/helpers";
+import { parseBody, withReadAuth, withWriteAuth } from "@/server/api/helpers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -14,7 +14,7 @@ const createSchema = z.object({
 });
 
 export async function GET(request: Request) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const url = new URL(request.url);
     const search = url.searchParams.get("search") ?? undefined;
     const favoriteOnly = url.searchParams.get("favorite") === "true";
@@ -46,7 +46,7 @@ export async function GET(request: Request) {
 
 /** 新建会话。不调用任何搜索或模型。 */
 export async function POST(request: Request) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     type CreateBody = { title?: string; mode?: "SEARCH_ANSWER" | "SEARCH_EVIDENCE" | "GEO_ANALYSIS" };
     const body = (await parseBody(request, createSchema.partial().passthrough())
       .catch(() => null)) as CreateBody | null;

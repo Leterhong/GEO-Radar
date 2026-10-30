@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, parseBody, apiFail, writeAuditLog } from "@/server/api/helpers";
+import { parseBody, apiFail, writeAuditLog, withWriteAuth } from "@/server/api/helpers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -17,7 +17,7 @@ const schema = z.object({
  * archive 为「移出证据库」（保留原始任务与搜索结果，可追溯）。
  */
 export async function POST(request: Request) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     const body = await parseBody(request, schema);
     const uniqueIds = Array.from(new Set(body.ids));
 

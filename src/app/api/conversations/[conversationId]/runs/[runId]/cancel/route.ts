@@ -1,4 +1,4 @@
-import { withAuth, apiFail, handleApiError } from "@/server/api/helpers";
+import { apiFail, handleApiError, withWriteAuth } from "@/server/api/helpers";
 import { cancelRun, ConversationError } from "@/server/services/conversation/orchestrator";
 import { NextResponse } from "next/server";
 
@@ -12,7 +12,7 @@ type Params = { params: { conversationId: string; runId: string } };
 /** 停止执行：置取消标记，执行器在阶段间与模型调用中响应；不虚报底层已中断。 */
 export async function POST(_request: Request, { params }: Params) {
   try {
-    return await withAuth(async ({ workspaceId, user }) => {
+    return await withWriteAuth(async ({ workspaceId, user }) => {
       try {
         await cancelRun(params.runId, workspaceId, user.id);
         return NextResponse.json({ ok: true, data: { accepted: true } });

@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, apiFail } from "@/server/api/helpers";
+import { apiFail, withReadAuth } from "@/server/api/helpers";
 
 // API 路由始终动态渲染（依赖会话 Cookie），避免构建期静态化尝试
 
@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 type Params = { params: { conversationId: string } };
 
 export async function GET(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const conversation = await prisma.conversation.findFirst({
       where: { id: params.conversationId, workspaceId },
     });

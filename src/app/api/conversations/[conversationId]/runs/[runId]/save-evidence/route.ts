@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, apiFail } from "@/server/api/helpers";
+import { apiFail, withWriteAuth } from "@/server/api/helpers";
 import { NextResponse } from "next/server";
 
 // API 路由始终动态渲染（依赖会话 Cookie），避免构建期静态化尝试
@@ -14,7 +14,7 @@ type Params = { params: { conversationId: string; runId: string } };
  * 本接口返回本次运行对应的证据清单与真实保存状态，供前端展示确认信息。
  */
 export async function POST(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withWriteAuth(async ({ workspaceId }) => {
     const run = await prisma.conversationRun.findFirst({
       where: { id: params.runId, conversationId: params.conversationId, conversation: { workspaceId } },
     });

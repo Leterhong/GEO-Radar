@@ -1,4 +1,4 @@
-import { withAuth, apiFail } from "@/server/api/helpers";
+import { apiFail, withWriteAuth } from "@/server/api/helpers";
 import { cancelAnalysisTask, retryAnalysisTask, AnalysisError } from "@/server/services/analysis/analysis-service";
 import { NextResponse } from "next/server";
 
@@ -8,7 +8,7 @@ type Params = { params: { analysisId: string } };
 
 /** action: cancel | retry */
 export async function POST(request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     const url = new URL(request.url);
     const action = url.searchParams.get("action");
     try {

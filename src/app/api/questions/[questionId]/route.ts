@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, parseBody, apiFail } from "@/server/api/helpers";
+import { parseBody, apiFail, withReadAuth, withWriteAuth } from "@/server/api/helpers";
 import { questionSchema } from "@/lib/validation/schemas";
 import { publishQuestionSetVersion } from "@/server/services/question-set-service";
 import { NextResponse } from "next/server";
@@ -12,7 +12,7 @@ type Params = { params: { questionId: string } };
 
 /** 问题详情：包括所属问题集与版本信息。 */
 export async function GET(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const question = await prisma.question.findFirst({
       where: { id: params.questionId, workspaceId },
       include: { questionSet: { select: { id: true, name: true, currentVersion: true, archivedAt: true } } },
@@ -23,7 +23,7 @@ export async function GET(_request: Request, { params }: Params) {
 }
 
 export async function PATCH(request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     const existing = await prisma.question.findFirst({ where: { id: params.questionId, workspaceId } });
     if (!existing) return apiFail(404, "NOT_FOUND", "问题不存在或不属于当前工作空间。");
     const body = await parseBody(request, questionSchema.partial().omit({ questionSetId: true }));
@@ -48,7 +48,7 @@ export async function PATCH(request: Request, { params }: Params) {
 }
 
 export async function DELETE(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     const existing = await prisma.question.findFirst({ where: { id: params.questionId, workspaceId } });
     if (!existing) return apiFail(404, "NOT_FOUND", "问题不存在或不属于当前工作空间。");
     await prisma.question.delete({ where: { id: existing.id } });

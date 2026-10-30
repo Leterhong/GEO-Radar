@@ -26,6 +26,7 @@ export function ApiTokenManager() {
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("MCP token");
   const [created, setCreated] = useState<string | null>(null);
+  const [readOnly, setReadOnly] = useState(false);
   const [busy, setBusy] = useState(false);
 
   async function load() {
@@ -49,7 +50,7 @@ export function ApiTokenManager() {
       const res = await fetch("/api/tokens", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
+        body: JSON.stringify({ name, scopes: readOnly ? ["read"] : undefined }),
       });
       const json = await res.json();
       if (!res.ok || !json.ok) {
@@ -57,6 +58,7 @@ export function ApiTokenManager() {
         return;
       }
       setCreated(json.data.token);
+      setReadOnly(false);
       toast.success("Token 已创建，只显示这一次");
       await load();
     } finally {
@@ -103,6 +105,10 @@ export function ApiTokenManager() {
                 placeholder="例如：DSH MCP / Claude Code"
                 maxLength={80}
               />
+              <label className="flex items-center gap-2 text-[12px] text-muted-foreground">
+                <input type="checkbox" checked={readOnly} onChange={(e) => setReadOnly(e.target.checked)} className="h-3.5 w-3.5" />
+                只读 Token（仅允许查询；写操作返回 403）
+              </label>
             </div>
             <Button onClick={createToken} disabled={busy || !name.trim()}>
               <Plus className="mr-1 h-4 w-4" /> 创建 Token
@@ -151,7 +157,7 @@ export function ApiTokenManager() {
                         {token.prefix}…
                       </Badge>
                       <Badge variant="outline" className="text-[10px]">
-                        workspace 级
+                        {token.scopes.length === 1 && token.scopes[0] === "read" ? "只读" : "读写"}
                       </Badge>
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">

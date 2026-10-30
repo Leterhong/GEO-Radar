@@ -1,5 +1,5 @@
 import { prisma } from "@/server/db/client";
-import { withAuth, apiFail, writeAuditLog } from "@/server/api/helpers";
+import { apiFail, writeAuditLog, withReadAuth, withWriteAuth } from "@/server/api/helpers";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +18,7 @@ const SUPPORTED: Record<string, { label: string; extractor: (buf: Buffer) => str
 };
 
 export async function GET(_request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withReadAuth(async ({ workspaceId }) => {
     const conversation = await prisma.conversation.findFirst({
       where: { id: params.conversationId, workspaceId },
     });
@@ -47,7 +47,7 @@ export async function GET(_request: Request, { params }: Params) {
  * 仅支持 TXT / Markdown / CSV——PDF 与 DOCX 需要专业解析库，当前明确不支持，不会假装已解析。
  */
 export async function POST(request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId, user }) => {
+  return withWriteAuth(async ({ workspaceId, user }) => {
     const conversation = await prisma.conversation.findFirst({
       where: { id: params.conversationId, workspaceId },
     });
@@ -138,7 +138,7 @@ export async function POST(request: Request, { params }: Params) {
 }
 
 export async function DELETE(request: Request, { params }: Params) {
-  return withAuth(async ({ workspaceId }) => {
+  return withWriteAuth(async ({ workspaceId }) => {
     const url = new URL(request.url);
     const attachmentId = url.searchParams.get("attachmentId");
     if (!attachmentId) return apiFail(400, "MISSING_ID", "请提供 attachmentId。");
