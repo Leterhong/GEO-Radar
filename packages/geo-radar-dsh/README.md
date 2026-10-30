@@ -29,6 +29,20 @@ dsh plugin --profile desktop add .
 The generated `cordis.patch.yml` contains the endpoint, tool package name and
 token; it is gitignored and must not be committed.
 
+## DSH version
+
+- Bundle format tested with `@deepseek-ai/dsh@0.1.5-rc.3` in an isolated profile.
+- Install the CLI with Node 24 recommended:
+
+```bash
+npm install -g @deepseek-ai/dsh@0.1.5-rc.3
+dsh --version
+```
+
+Node 23 may not execute the published `bin.js` self-entry (`import.meta.main`);
+use Node 24 or the DSH desktop app's CLI for real loading. Do not patch DSH core.
+- Uses the official `@deepseek-ai/dsh-tools` + `@deepseek-ai/cordis` services.
+
 ## Tools
 
 ```text

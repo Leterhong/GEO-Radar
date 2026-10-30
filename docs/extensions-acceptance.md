@@ -110,6 +110,13 @@ DSH_HOME = <repo>/.tmp-dsh-home
 profile = native-headless
 ```
 
+官方 CLI 安装（Node 24 推荐）：
+
+```powershell
+npm install -g @deepseek-ai/dsh@0.1.5-rc.3
+dsh --version
+```
+
 DSH CLI 的 `bin.js` 在 Node 23 下 `import.meta.main` 不会自动执行，本次用等价 wrapper
 `import { runCli } from './.../bin.js'; await runCli()` 运行，不修改 DSH 源码。
 
@@ -189,6 +196,13 @@ geo_generate_report
 ## 复现命令
 
 ```powershell
+# 0. 真实 SearchPro（必须显式确认成本）
+$env:GEO_RADAR_URL="http://127.0.0.1:3000"
+$env:GEO_RADAR_TOKEN="gr_..."
+$env:SEARCHPRO_BRAND_ID="cmvrogw69000bmrhmnt55fgem"
+$env:CONFIRM_REAL_SEARCH="1"
+npm run searchpro:smoke:real
+
 # 1. 全量回归
 npm run typecheck
 npm run lint
