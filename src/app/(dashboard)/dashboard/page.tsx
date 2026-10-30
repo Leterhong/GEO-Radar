@@ -21,7 +21,7 @@ export default async function OverviewPage({
   const days = Math.min(365, Math.max(1, Number(searchParams.days ?? "30")));
   const brandId = searchParams.brandId || undefined;
 
-  const [brands, credential, questionCount, taskCount, metrics, trend, sources, recentTasks, recentEvidence] = await Promise.all([
+  const [brands, credential, questionCount, taskCount, metrics, trend, sources, recentTasks, recentEvidence, recentReports, recentReviews, failedTasks] = await Promise.all([
     prisma.brand.findMany({ where: { workspaceId }, select: { id: true, name: true }, orderBy: { createdAt: "asc" } }),
     prisma.searchProviderCredential.findUnique({ where: { workspaceId } }),
     prisma.question.count({ where: { workspaceId } }),
@@ -30,16 +30,34 @@ export default async function OverviewPage({
     brandId ? computeBrandTrend(workspaceId, brandId, days) : Promise.resolve([]),
     computeSourceDomains(workspaceId, brandId, days, 8),
     prisma.searchTask.findMany({
-      where: { workspaceId },
+      where: { workspaceId, brandId: brandId ?? undefined },
       orderBy: { createdAt: "desc" },
       take: 6,
       include: { brand: { select: { name: true } }, creator: { select: { name: true } } },
     }),
     prisma.evidence.findMany({
-      where: { workspaceId, isMock: false },
+      where: { workspaceId, brandId: brandId ?? undefined, isMock: false },
       orderBy: { collectedAt: "desc" },
       take: 6,
       select: { id: true, title: true, url: true, domain: true, collectedAt: true, mentionStatus: true },
+    }),
+    prisma.report.findMany({
+      where: { workspaceId, brandId: brandId ?? undefined },
+      orderBy: { generatedAt: "desc" },
+      take: 4,
+      select: { id: true, title: true, kind: true, generatedAt: true },
+    }),
+    prisma.evidenceReview.findMany({
+      where: { workspaceId, ...(brandId ? { evidence: { brandId } } : {}) },
+      orderBy: { createdAt: "desc" },
+      take: 4,
+      select: { id: true, action: true, createdAt: true, evidence: { select: { id: true, title: true } } },
+    }),
+    prisma.searchTask.findMany({
+      where: { workspaceId, brandId: brandId ?? undefined, status: "FAILED" },
+      orderBy: { createdAt: "desc" },
+      take: 4,
+      select: { id: true, name: true, failureReason: true, createdAt: true },
     }),
   ]);
 
@@ -60,6 +78,26 @@ export default async function OverviewPage({
         }
       />
 
+      <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+        {[
+          { label: "监测品牌", value: metrics.brandCount, href: "/brands" },
+          { label: "竞品", value: metrics.competitorCount, href: "/competitors" },
+          { label: "有效问题样本", value: metrics.brandAppearance.validSamples, href: "/matrix" },
+          { label: "网页证据", value: metrics.evidenceCount, href: "/evidence" },
+          { label: "最近采集", value: metrics.lastCollectedAt ? formatDate(metrics.lastCollectedAt) : "—", href: "/search-lab" },
+          { label: "搜索任务", value: metrics.completedTasks, href: "/tasks" },
+        ].map((item) => (
+          <Link
+            key={item.label}
+            href={item.href}
+            className="rounded-xl border border-border bg-card px-4 py-3 transition-colors hover:border-border-strong"
+          >
+            <p className="text-[11px] text-tertiary">{item.label}</p>
+            <p className="mt-1 truncate text-lg font-semibold">{item.value}</p>
+          </Link>
+        ))}
+      </div>
+
       {!hasAnyData ? (
         <div className="space-y-4">
           <SetupGuide
@@ -77,7 +115,7 @@ export default async function OverviewPage({
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5">
             <KpiCard
               title="品牌出现率"
               value={formatPercent(metrics.brandAppearance.value)}
@@ -93,8 +131,20 @@ export default async function OverviewPage({
             <KpiCard
               title="官网来源覆盖率"
               value={metrics.officialSiteCoverage.value === null ? "暂无数据" : formatPercent(metrics.officialSiteCoverage.value)}
-              sub={metrics.officialSiteCoverage.value === null ? "请先在品牌设置中填写官网域名" : `有效样本 ${metrics.officialSiteCoverage.validSamples} 个问题`}
+              sub={
+                metrics.officialSiteCoverage.value === null
+                  ? brandId
+                    ? "请先在品牌设置中填写官网域名"
+                    : "选择具体品牌后计算官网覆盖率"
+                  : `有效样本 ${metrics.officialSiteCoverage.validSamples} 个问题`
+              }
               methodology={metrics.officialSiteCoverage.methodology}
+            />
+            <KpiCard
+              title="第三方页面覆盖率"
+              value={formatPercent(metrics.thirdPartyCoverage.value)}
+              sub={`有效样本 ${metrics.thirdPartyCoverage.validSamples} 个问题`}
+              methodology={metrics.thirdPartyCoverage.methodology}
             />
             <KpiCard
               title="已完成搜索任务"
@@ -103,9 +153,21 @@ export default async function OverviewPage({
             />
           </div>
 
+          <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-border bg-card px-4 py-3 text-[12px] text-muted-foreground">
+            <span className="font-medium text-foreground">待处理</span>
+            <Link href="/tasks" className="hover:underline">失败任务 {metrics.failedTaskCount}</Link>
+            <Link href="/evidence" className="hover:underline">待复核证据 {metrics.pendingReviewCount}</Link>
+            <Link href="/optimization" className="hover:underline">待处理优化 {metrics.pendingRecommendations}</Link>
+            <Link href="/reports" className="hover:underline">报告 {metrics.reportCount}</Link>
+            {failedTasks.length > 0 ? (
+              <span className="truncate text-tertiary">最近失败：{failedTasks[0]?.name}</span>
+            ) : null}
+          </div>
+
+
           <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
             <div className="lg:col-span-2">
-              <OverviewTrendChart data={trend} />
+              <OverviewTrendChart data={trend} hasBrand={Boolean(brandId)} />
             </div>
             <div className="rounded-xl border border-border bg-card p-5">
               <h3 className="text-[15px] font-semibold">来源域名 Top 8</h3>
@@ -179,6 +241,53 @@ export default async function OverviewPage({
                       <p className="mt-0.5 truncate font-mono text-[12px] text-tertiary">
                         {e.domain ?? "—"} · {formatDate(e.collectedAt)}
                       </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div className="rounded-xl border border-border bg-card p-5">
+              <div className="flex items-center justify-between">
+                <h3 className="text-[15px] font-semibold">最近报告</h3>
+                <Link href="/reports" className="text-xs text-primary hover:underline">
+                  报告中心
+                </Link>
+              </div>
+              {recentReports.length === 0 ? (
+                <p className="mt-3 text-[13px] text-muted-foreground">暂无报告</p>
+              ) : (
+                <ul className="mt-3 divide-y">
+                  {recentReports.map((r) => (
+                    <li key={r.id} className="flex items-center justify-between gap-2 py-2">
+                      <Link href={`/reports/${r.id}`} className="min-w-0 flex-1 truncate text-sm hover:underline">
+                        {r.title}
+                      </Link>
+                      <span className="shrink-0 text-[11px] text-tertiary">{formatDate(r.generatedAt)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div className="rounded-xl border border-border bg-card p-5">
+              <div className="flex items-center justify-between">
+                <h3 className="text-[15px] font-semibold">最近人工复核</h3>
+                <Link href="/evidence" className="text-xs text-primary hover:underline">
+                  证据库
+                </Link>
+              </div>
+              {recentReviews.length === 0 ? (
+                <p className="mt-3 text-[13px] text-muted-foreground">暂无复核记录</p>
+              ) : (
+                <ul className="mt-3 divide-y">
+                  {recentReviews.map((r) => (
+                    <li key={r.id} className="flex items-center justify-between gap-2 py-2">
+                      <Link href={`/evidence/${r.evidence.id}`} className="min-w-0 flex-1 truncate text-sm hover:underline">
+                        {r.evidence.title}
+                      </Link>
+                      <span className="shrink-0 text-[11px] text-tertiary">{r.action} · {formatDate(r.createdAt)}</span>
                     </li>
                   ))}
                 </ul>

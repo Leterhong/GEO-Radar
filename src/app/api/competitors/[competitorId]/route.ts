@@ -24,6 +24,10 @@ export async function PATCH(request: Request, { params }: Params) {
         websiteUrl: body.websiteUrl !== undefined ? body.websiteUrl || undefined : undefined,
         websiteDomain:
           body.websiteUrl !== undefined ? extractWebsiteDomain(body.websiteUrl || undefined) : undefined,
+        industry: body.industry,
+        products: body.products,
+        productAliases: body.productAliases,
+        enabled: body.enabled,
         description: body.description,
         note: body.note,
       },

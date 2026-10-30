@@ -170,6 +170,7 @@ Yuanbao SearchPro
 | [docs/agent-integration.md](docs/agent-integration.md) | Skill / MCP / DSH 接入 |
 | [docs/yuanbao-integration.md](docs/yuanbao-integration.md) | SearchPro 接入与错误处理 |
 | [docs/deployment.md](docs/deployment.md) | 部署、认证 Cookie、调度 |
+| [docs/upgrade-report.md](docs/upgrade-report.md) | 本轮平台升级交付报告 |
 | [docs/article-geo-radar.md](docs/article-geo-radar.md) | 实战文章 |
 
 ---

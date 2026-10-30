@@ -23,6 +23,7 @@ export const workspaceCreateSchema = z.object({
 
 export const brandSchema = z.object({
   name: z.string().trim().min(1, "品牌名称不能为空").max(100),
+  englishName: z.string().trim().max(100).optional().or(z.literal("")),
   aliases: z.array(z.string().trim().min(1).max(100)).max(20).optional(),
   websiteUrl: z.string().trim().max(300).optional().or(z.literal("")),
   industry: z.string().trim().max(60).optional().or(z.literal("")),
@@ -38,6 +39,10 @@ export const competitorSchema = z.object({
   name: z.string().trim().min(1, "竞品名称不能为空").max(100),
   aliases: z.array(z.string().trim().min(1).max(100)).max(20).optional(),
   websiteUrl: z.string().trim().max(300).optional().or(z.literal("")),
+  industry: z.string().trim().max(60).optional().or(z.literal("")),
+  products: z.array(z.string().trim().min(1).max(100)).max(30).optional(),
+  productAliases: z.array(z.string().trim().min(1).max(100)).max(30).optional(),
+  enabled: z.boolean().optional(),
   description: z.string().trim().max(2000).optional().or(z.literal("")),
   note: z.string().trim().max(500).optional().or(z.literal("")),
 });
@@ -88,13 +93,13 @@ export const optimizationTaskSchema = z.object({
   type: z.string().trim().min(1).max(60),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
   brandId: z.string().optional().or(z.literal("")),
-  status: z.enum(["OPEN", "IN_PROGRESS", "DONE", "DISMISSED"]).optional(),
+  status: z.enum(["OPEN", "IN_PROGRESS", "NEEDS_VERIFICATION", "DONE", "DISMISSED"]).optional(),
   assignee: z.string().trim().max(60).optional().or(z.literal("")),
   dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal("")),
 });
 
 export const optimizationTaskUpdateSchema = z.object({
-  status: z.enum(["OPEN", "IN_PROGRESS", "DONE", "DISMISSED"]).optional(),
+  status: z.enum(["OPEN", "IN_PROGRESS", "NEEDS_VERIFICATION", "DONE", "DISMISSED"]).optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).optional(),
   title: z.string().trim().min(1).max(150).optional(),
   description: z.string().trim().min(1).max(3000).optional(),

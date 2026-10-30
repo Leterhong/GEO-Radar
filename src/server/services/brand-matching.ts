@@ -9,10 +9,11 @@ import { termMatch } from "./mention-detection";
  * 不推断「是否被最终生成式回答引用」——该信息无法从普通搜索结果得到。
  */
 
-export const EVIDENCE_RULE_VERSION = "evidence-v2";
+export const EVIDENCE_RULE_VERSION = "evidence-v3";
 
 export interface BrandMatchConfig {
   name: string;
+  englishName?: string | null;
   aliases: string[];
   websiteDomain?: string | null;
   officialSubdomains?: string[] | null;
@@ -109,6 +110,9 @@ export function analyzeEvidencePage(
   const brandTerms: Array<{ term: string; kind: TermKind }> = [];
   if (brand) {
     if (brand.name.trim() !== "") brandTerms.push({ term: brand.name.trim(), kind: "NAME" });
+    if (brand.englishName?.trim() && brand.englishName.trim() !== brand.name.trim()) {
+      brandTerms.push({ term: brand.englishName.trim(), kind: "NAME" });
+    }
     for (const alias of brand.aliases ?? []) {
       if (alias.trim() !== "") brandTerms.push({ term: alias.trim(), kind: "ALIAS" });
     }

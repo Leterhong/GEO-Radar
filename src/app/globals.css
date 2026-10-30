@@ -224,3 +224,20 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* 报告打印 / 另存为 PDF：隐藏工作台导航，只保留正文 */
+@media print {
+  aside,
+  header {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+  .lg\:pl-\[236px\] {
+    padding-left: 0 !important;
+  }
+}

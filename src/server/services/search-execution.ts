@@ -87,7 +87,7 @@ async function loadBrandContext(workspaceId: string, brandId?: string) {
   if (!brandId) return { brand: null, competitors: [] };
   const brand = await prisma.brand.findFirst({ where: { id: brandId, workspaceId } });
   if (!brand) throw new SearchExecutionError("BRAND_NOT_FOUND", "品牌不存在或不属于当前工作空间");
-  const competitors = await prisma.competitor.findMany({ where: { workspaceId, brandId } });
+  const competitors = await prisma.competitor.findMany({ where: { workspaceId, brandId, enabled: true } });
   return { brand, competitors };
 }
 
@@ -166,6 +166,7 @@ export async function createSearchTask(
       ? {
           id: brand.id,
           name: brand.name,
+          englishName: brand.englishName,
           aliases: brand.aliases,
           websiteDomain: brand.websiteDomain,
           officialSubdomains: brand.officialSubdomains,
@@ -433,6 +434,7 @@ async function runTaskExecution(task: SearchTask, workspaceId: string, userId: s
         brand: brand
           ? {
               name: brand.name,
+              englishName: brand.englishName,
               aliases: brand.aliases,
               websiteDomain: brand.websiteDomain,
               officialSubdomains: brand.officialSubdomains,
@@ -602,6 +604,7 @@ interface PersistArgs {
   response: Awaited<ReturnType<SearchProvider["search"]>>;
   brand: {
     name: string;
+    englishName: string | null;
     aliases: string[];
     websiteDomain: string | null;
     officialSubdomains: string[];

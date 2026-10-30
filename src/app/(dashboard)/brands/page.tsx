@@ -21,6 +21,7 @@ export default async function BrandsPage() {
         brands={brands.map((b) => ({
           id: b.id,
           name: b.name,
+          englishName: b.englishName,
           websiteUrl: b.websiteUrl,
           websiteDomain: b.websiteDomain,
           aliases: b.aliases,

@@ -39,6 +39,7 @@ export async function generateRecommendations(
       status: "SUCCESS",
       task: { executionMode: "REAL", source: "LAB", brandId },
     },
+    orderBy: [{ executedAt: "asc" }, { createdAt: "asc" }],
     select: {
       questionId: true,
       questionText: true,
@@ -153,7 +154,7 @@ export async function generateRecommendations(
 
   // 去重：同品牌同类型已存在 OPEN/IN_PROGRESS 的建议则跳过
   const existing = await prisma.optimizationTask.findMany({
-    where: { workspaceId, brandId, status: { in: ["OPEN", "IN_PROGRESS"] } },
+    where: { workspaceId, brandId, status: { in: ["OPEN", "IN_PROGRESS", "NEEDS_VERIFICATION"] } },
     select: { type: true },
   });
   const existingTypes = new Set(existing.map((e) => e.type));

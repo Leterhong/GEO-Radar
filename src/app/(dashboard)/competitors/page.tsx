@@ -51,8 +51,12 @@ export default async function CompetitorsPage({
           competitors={competitors.map((c) => ({
             id: c.id,
             name: c.name,
+            aliases: c.aliases,
             websiteUrl: c.websiteUrl,
             websiteDomain: c.websiteDomain,
+            industry: c.industry,
+            products: c.products,
+            enabled: c.enabled,
             description: c.description,
             note: c.note,
             appearanceRate: metrics.find((m) => m.competitorId === c.id)?.appearanceRate ?? null,

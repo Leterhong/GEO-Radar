@@ -31,7 +31,7 @@ Next.js Route Handlers（src/app/api/**）— 输入校验(Zod)、权限、统�
   - `search-execution.ts`：任务创建/启动/取消/重试、并发 worker、退避重试、页面级证据归档、采集快照触发。
   - `url-normalization`（`src/lib/url-normalization.ts`）：URL 规范化与页面键。
   - `page-classification.ts`：可解释页面类型识别。
-  - `brand-matching.ts`：品牌/竞品匹配依据、页面级分析（evidence-v2）。
+  - `brand-matching.ts`：品牌/竞品匹配依据、页面级分析（evidence-v3）。
   - `question-set-service.ts`：问题集版本快照、版本发布、复制、归档。
   - `matrix-service.ts`：品牌问题矩阵、服务端统一指标（geo-metrics-v2）。
   - `snapshot-service.ts`：COLLECTION / RECOMPUTE 快照、重新分析。

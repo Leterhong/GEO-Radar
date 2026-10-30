@@ -16,8 +16,8 @@
 
 | 表 | 关键字段 | 说明 |
 | --- | --- | --- |
-| `Brand` | name, aliases[], websiteUrl, websiteDomain, officialSubdomains[], products[], productAliases[], keywords[], industry, description, matchConfig(JSON) | websiteDomain 由服务端从 URL 规范化提取；officialSubdomains 用于官网归属；products/productAliases 作为独立匹配依据；matchConfig 当前仅保存、不参与隐藏规则 |
-| `Competitor` | brandId, name, aliases[], websiteDomain | 规则识别竞品提及；官网域名用于竞品官网页判定 |
+| `Brand` | name, englishName, aliases[], websiteUrl, websiteDomain, officialSubdomains[], products[], productAliases[], keywords[], industry, description, matchConfig(JSON) | websiteDomain 由服务端从 URL 规范化提取；englishName 参与正式名称匹配；officialSubdomains 用于官网归属；products/productAliases 作为独立匹配依据；matchConfig 当前仅保存、不参与隐藏规则 |
+| `Competitor` | brandId, name, aliases[], websiteDomain, industry, products[], productAliases[], enabled | 规则识别竞品提及；官网域名用于竞品官网页判定；enabled=false 的竞品不参与后续匹配、矩阵、指标与复测快照 |
 | `QuestionSet` | name, description, currentVersion, archivedAt | 删除改为归档，保留历史任务与版本 |
 | `Question` | questionSetId, text(≤300), category, intent, region, language, priority(1-5), enabled, version | region/language 仅内部记录，元宝接口不支持对应参数；version 为最近变更所属问题集版本 |
 | `QuestionSetVersion` | questionSetId, version, name, description, questions(JSON), questionCount, enabledCount, note, createdById | 不可变快照；`(questionSetId, version)` 唯一；历史任务引用 |
@@ -53,7 +53,8 @@
 
 | 表 | 关键字段 | 说明 |
 | --- | --- | --- |
-| `OptimizationTask` | title, description, type(BRAND_MISSING/COMPETITOR_ADVANTAGE/OFFICIAL_SITE_LOW/...), priority, status, evidenceIds[], questionRefs[], generatedBy(RULE_ENGINE/MANUAL) | 规则建议附描述性免责说明 |
+| `OptimizationTask` | title, description, type(BRAND_MISSING/COMPETITOR_ADVANTAGE/OFFICIAL_SITE_LOW/...), priority, status(OPEN/IN_PROGRESS/NEEDS_VERIFICATION/DONE/DISMISSED), evidenceIds[], questionRefs[], generatedBy(RULE_ENGINE/MANUAL) | 规则建议附描述性免责说明；待验证状态用于记录优化后等待复测 |
+| `OptimizationEvent` | brandId, name, occurredAt, contentChanged, pageUrls[], note, baselineTaskId, retestTaskId, createdById | 仅记录时间关联，页面与报告明确不推断因果 |
 | `AuditLog`（实验） | action=EXPERIMENT_CREATED, metadata.name/baselineTaskId/retestTaskId/comparison | 实验记录复用审计日志存储 |
 
 ## 数据保留

@@ -7,6 +7,7 @@ import { Markdown } from "@/components/chat/markdown";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CollectionReportView } from "@/components/reports/collection-report-view";
+import { PrintReportButton } from "@/components/shared/print-report-button";
 import { formatDate } from "@/lib/utils";
 import { Download, FileSpreadsheet, FileText, ArrowLeft, ExternalLink } from "lucide-react";
 
@@ -43,6 +44,7 @@ export default async function ReportDetailPage({ params }: { params: { reportId:
                   <ExternalLink className="mr-1 h-3.5 w-3.5" /> HTML
                 </a>
               </Button>
+              <PrintReportButton />
               <Button variant="outline" size="sm" asChild>
                 <a href={`/api/reports/${report.id}/export?format=md`}>
                   <Download className="mr-1 h-3.5 w-3.5" /> Markdown
@@ -111,6 +113,7 @@ export default async function ReportDetailPage({ params }: { params: { reportId:
                 <FileSpreadsheet className="mr-1 h-3.5 w-3.5" /> 导出指标 CSV
               </a>
             </Button>
+            <PrintReportButton />
             <Button size="sm" asChild>
               <a href={`/api/reports/${report.id}/export?format=md`}>
                 <Download className="mr-1 h-3.5 w-3.5" /> 导出 Markdown

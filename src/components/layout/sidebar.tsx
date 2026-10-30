@@ -47,7 +47,7 @@ const NAV_GROUPS = [
       { href: "/competitors", label: "竞品分析", icon: Swords },
       { href: "/evidence", label: "证据库", icon: FolderOpen },
       { href: "/snapshots", label: "历史快照", icon: History },
-      { href: "/optimization", label: "优化任务", icon: Wrench },
+      { href: "/optimization", label: "优化中心", icon: Wrench },
       { href: "/experiments", label: "实验对比", icon: GitCompareArrows },
       { href: "/tasks", label: "任务与用量", icon: Activity },
       { href: "/dashboard-tv", label: "数据大屏", icon: Monitor },

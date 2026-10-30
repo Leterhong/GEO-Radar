@@ -26,6 +26,7 @@ export async function POST(request: Request) {
       data: {
         workspaceId,
         name: body.name,
+        englishName: body.englishName || undefined,
         aliases: body.aliases ?? [],
         websiteUrl: body.websiteUrl || undefined,
         websiteDomain: extractWebsiteDomain(body.websiteUrl || undefined),

@@ -19,10 +19,19 @@ export interface OverviewMetrics {
   brandAppearance: MetricSample;
   questionCoverage: MetricSample;
   officialSiteCoverage: MetricSample;
+  thirdPartyCoverage: MetricSample;
   completedTasks: number;
   runningTasks: number;
   failedItemTotal: number;
   pendingRecommendations: number;
+  brandCount: number;
+  competitorCount: number;
+  questionCount: number;
+  evidenceCount: number;
+  failedTaskCount: number;
+  pendingReviewCount: number;
+  reportCount: number;
+  lastCollectedAt: string | null;
   since: string;
 }
 
@@ -52,10 +61,16 @@ export async function computeOverviewMetrics(
         OR: [{ startedAt: { gte: since } }, { startedAt: null }],
       },
     },
+    orderBy: [{ executedAt: "asc" }, { createdAt: "asc" }],
     select: {
       questionId: true,
       results: {
-        select: { id: true, domain: true, url: true, evidence: { select: { mentionStatus: true } } },
+        select: {
+          id: true,
+          domain: true,
+          url: true,
+          evidence: { select: { mentionStatus: true, thirdPartyMention: true } },
+        },
       },
     },
   });
@@ -73,6 +88,7 @@ export async function computeOverviewMetrics(
   let brandAppeared = 0;
   let covered = 0;
   let officialSiteCovered = 0;
+  let thirdPartyCovered = 0;
   let brandWebsiteDomain: string | null = null;
   let brandOfficialSubdomains: string[] = [];
   if (brandId) {
@@ -89,6 +105,10 @@ export async function computeOverviewMetrics(
     if (results.length > 0) covered += 1;
     const brandMentioned = results.some((r) => r.evidence.some((e) => e.mentionStatus === "CONFIRMED_BRAND"));
     if (brandMentioned) brandAppeared += 1;
+    const thirdPartyMentioned = results.some((r) =>
+      r.evidence.some((e) => e.thirdPartyMention && e.mentionStatus !== "IRRELEVANT")
+    );
+    if (thirdPartyMentioned) thirdPartyCovered += 1;
     if (brandWebsiteDomain || brandOfficialSubdomains.length > 0) {
       const officialHit = results.some((r) =>
         isConfiguredOfficialHost(r.domain ?? hostFromUrl(r.url), brandWebsiteDomain, brandOfficialSubdomains)
@@ -100,12 +120,22 @@ export async function computeOverviewMetrics(
   const rate = (numerator: number): MetricSample["value"] => (validSamples > 0 ? numerator / validSamples : null);
   const brandName = "品牌出现率";
 
-  const [completedTasks, runningTasks, failedItemTotal, pendingRecommendations] = await Promise.all([
+  const [completedTasks, runningTasks, failedItemTotal, pendingRecommendations, brandCount, competitorCount, questionCount, evidenceCount, failedTaskCount, pendingReviewCount, reportCount, lastTask] = await Promise.all([
     prisma.searchTask.count({ where: { workspaceId, executionMode: "REAL", source: "LAB", status: { in: ["COMPLETED", "PARTIAL_FAILED"] }, brandId: brandId ?? undefined } }),
     prisma.searchTask.count({ where: { workspaceId, status: "RUNNING", brandId: brandId ?? undefined } }),
     prisma.searchTaskItem.count({ where: { workspaceId, status: "FAILED", task: { executionMode: "REAL", source: "LAB", brandId: brandId ?? undefined } } }),
-    prisma.optimizationTask.count({ where: { workspaceId, status: { in: ["OPEN", "IN_PROGRESS"] }, brandId: brandId ?? undefined } }),
+    prisma.optimizationTask.count({ where: { workspaceId, status: { in: ["OPEN", "IN_PROGRESS", "NEEDS_VERIFICATION"] }, brandId: brandId ?? undefined } }),
+    prisma.brand.count({ where: { workspaceId } }),
+    prisma.competitor.count({ where: { workspaceId, brandId: brandId ?? undefined } }),
+    prisma.question.count({ where: { workspaceId, enabled: true } }),
+    prisma.evidence.count({ where: { workspaceId, isMock: false, brandId: brandId ?? undefined } }),
+    prisma.searchTask.count({ where: { workspaceId, status: "FAILED", brandId: brandId ?? undefined } }),
+    prisma.evidence.count({ where: { workspaceId, isMock: false, mentionStatus: "PENDING_REVIEW", brandId: brandId ?? undefined } }),
+    prisma.report.count({ where: { workspaceId, brandId: brandId ?? undefined } }),
+    prisma.searchTask.findFirst({ where: { workspaceId, brandId: brandId ?? undefined }, orderBy: [{ finishedAt: "desc" }, { createdAt: "desc" }], select: { finishedAt: true, startedAt: true, createdAt: true } }),
   ]);
+  const lastCollectedAt = lastTask?.finishedAt ?? lastTask?.startedAt ?? lastTask?.createdAt ?? null;
+
 
   return {
     brandAppearance: {
@@ -128,10 +158,24 @@ export async function computeOverviewMetrics(
         ? methodologyFor("官网来源覆盖率")
         : "官网来源覆盖率：品牌尚未配置官网域名，无法计算。请在品牌设置中填写官网地址。",
     },
+    thirdPartyCoverage: {
+      value: rate(thirdPartyCovered),
+      validSamples,
+      numerator: thirdPartyCovered,
+      methodology: methodologyFor("第三方页面覆盖率"),
+    },
     completedTasks,
     runningTasks,
     failedItemTotal,
     pendingRecommendations,
+    brandCount,
+    competitorCount,
+    questionCount,
+    evidenceCount,
+    failedTaskCount,
+    pendingReviewCount,
+    reportCount,
+    lastCollectedAt: lastCollectedAt?.toISOString() ?? null,
     since: since.toISOString(),
   };
 }
@@ -147,6 +191,8 @@ function hostFromUrl(url: string): string | null {
 export interface BrandTrendPoint {
   date: string;
   appearanceRate: number | null;
+  officialRate: number | null;
+  thirdPartyRate: number | null;
   validSamples: number;
 }
 
@@ -157,6 +203,8 @@ export async function computeBrandTrend(
   sinceDays: number
 ): Promise<BrandTrendPoint[]> {
   const since = new Date(Date.now() - sinceDays * 24 * 60 * 60 * 1000);
+  const brand = await prisma.brand.findFirst({ where: { id: brandId, workspaceId }, select: { websiteDomain: true, officialSubdomains: true } });
+  const hasOfficialConfig = Boolean(brand?.websiteDomain || (brand?.officialSubdomains?.length ?? 0) > 0);
   const evidence = await prisma.evidence.findMany({
     where: {
       workspaceId,
@@ -169,22 +217,30 @@ export async function computeBrandTrend(
       collectedAt: true,
       questionId: true,
       mentionStatus: true,
+      officialDomainMatch: true,
+      thirdPartyMention: true,
     },
   });
-  const byDayQuestion = new Map<string, "appeared" | "not">();
+  const byDayQuestion = new Map<string, { appeared: boolean; official: boolean; thirdParty: boolean }>();
   for (const row of evidence) {
+    if (!row.questionId) continue;
     const day = row.collectedAt.toISOString().slice(0, 10);
     const key = `${day}:${row.questionId}`;
-    if (row.mentionStatus === "CONFIRMED_BRAND") byDayQuestion.set(key, "appeared");
-    else if (!byDayQuestion.has(key)) byDayQuestion.set(key, "not");
+    const state = byDayQuestion.get(key) ?? { appeared: false, official: false, thirdParty: false };
+    if (row.mentionStatus === "CONFIRMED_BRAND") state.appeared = true;
+    if (row.officialDomainMatch) state.official = true;
+    if (row.thirdPartyMention && row.mentionStatus !== "IRRELEVANT") state.thirdParty = true;
+    byDayQuestion.set(key, state);
   }
-  const byDay = new Map<string, { appeared: number; total: number }>();
+  const byDay = new Map<string, { appeared: number; official: number; thirdParty: number; total: number }>();
   for (const [key, state] of byDayQuestion) {
     const day = key.split(":")[0] ?? "";
     if (!day) continue;
-    const entry = byDay.get(day) ?? { appeared: 0, total: 0 };
+    const entry = byDay.get(day) ?? { appeared: 0, official: 0, thirdParty: 0, total: 0 };
     entry.total += 1;
-    if (state === "appeared") entry.appeared += 1;
+    if (state.appeared) entry.appeared += 1;
+    if (state.official) entry.official += 1;
+    if (state.thirdParty) entry.thirdParty += 1;
     byDay.set(day, entry);
   }
   return Array.from(byDay.entries())
@@ -192,6 +248,8 @@ export async function computeBrandTrend(
     .map(([date, entry]) => ({
       date,
       appearanceRate: entry.total > 0 ? entry.appeared / entry.total : null,
+      officialRate: hasOfficialConfig && entry.total > 0 ? entry.official / entry.total : null,
+      thirdPartyRate: entry.total > 0 ? entry.thirdParty / entry.total : null,
       validSamples: entry.total,
     }));
 }
@@ -247,7 +305,7 @@ export async function computeCompetitorMetrics(
   brandId: string,
   sinceDays: number
 ): Promise<CompetitorMetricRow[]> {
-  const competitors = await prisma.competitor.findMany({ where: { workspaceId, brandId } });
+  const competitors = await prisma.competitor.findMany({ where: { workspaceId, brandId, enabled: true } });
   if (competitors.length === 0) return [];
   const since = new Date(Date.now() - sinceDays * 24 * 60 * 60 * 1000);
   const items = await prisma.searchTaskItem.findMany({
@@ -256,6 +314,7 @@ export async function computeCompetitorMetrics(
       status: "SUCCESS",
       task: { executionMode: "REAL", source: "LAB", brandId, OR: [{ startedAt: { gte: since } }, { startedAt: null }] },
     },
+    orderBy: [{ executedAt: "asc" }, { createdAt: "asc" }],
     select: {
       questionId: true,
       results: { select: { evidence: { select: { competitorMatches: true } } } },

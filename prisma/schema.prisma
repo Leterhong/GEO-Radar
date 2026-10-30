@@ -74,6 +74,7 @@ enum EvidenceRelevance {
 enum OptimizationStatus {
   OPEN
   IN_PROGRESS
+  NEEDS_VERIFICATION
   DONE
   DISMISSED
 }
@@ -239,6 +240,7 @@ model Brand {
   id                 String    @id @default(cuid())
   workspaceId        String
   name               String
+  englishName        String?
   aliases            String[]
   websiteUrl         String?
   websiteDomain      String?
@@ -270,17 +272,21 @@ model Brand {
 }
 
 model Competitor {
-  id            String   @id @default(cuid())
-  workspaceId   String
-  brandId       String
-  name          String
-  aliases       String[]
-  websiteUrl    String?
-  websiteDomain String?
-  description   String?
-  note          String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id             String   @id @default(cuid())
+  workspaceId    String
+  brandId        String
+  name           String
+  aliases        String[]
+  websiteUrl     String?
+  websiteDomain  String?
+  industry       String?
+  products       String[] @default([])
+  productAliases String[] @default([])
+  enabled        Boolean  @default(true)
+  description    String?
+  note           String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   brand     Brand     @relation(fields: [brandId], references: [id], onDelete: Cascade)

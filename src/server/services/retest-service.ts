@@ -38,6 +38,7 @@ export async function createRetestTask(
         select: {
           id: true,
           name: true,
+          englishName: true,
           aliases: true,
           websiteDomain: true,
           officialSubdomains: true,
@@ -116,7 +117,7 @@ export async function createRetestTask(
     throw new RetestError("TOO_MANY_QUESTIONS", `单次复测最多支持 ${env.maxQuestionsPerTask} 个问题`);
 
   const competitors = baseline.brandId
-    ? await prisma.competitor.findMany({ where: { workspaceId, brandId: baseline.brandId } })
+    ? await prisma.competitor.findMany({ where: { workspaceId, brandId: baseline.brandId, enabled: true } })
     : [];
 
   const brandSnapshot = {
@@ -126,6 +127,7 @@ export async function createRetestTask(
       ? {
           id: baseline.brand.id,
           name: baseline.brand.name,
+          englishName: baseline.brand.englishName,
           aliases: baseline.brand.aliases,
           websiteDomain: baseline.brand.websiteDomain,
           officialSubdomains: baseline.brand.officialSubdomains,

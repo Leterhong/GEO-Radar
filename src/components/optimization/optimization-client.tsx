@@ -38,6 +38,7 @@ const PRIORITY_LABEL: Record<string, string> = {
 const STATUS_LABEL: Record<string, string> = {
   OPEN: "待处理",
   IN_PROGRESS: "进行中",
+  NEEDS_VERIFICATION: "待验证",
   DONE: "已完成",
   DISMISSED: "已忽略",
 };
@@ -124,7 +125,7 @@ export function OptimizationClient({ brands, tasks }: { brands: Array<{ id: stri
     toast.success("状态已更新");
   }
 
-  const statusOrder = ["OPEN", "IN_PROGRESS", "DONE", "DISMISSED"];
+  const statusOrder = ["OPEN", "IN_PROGRESS", "NEEDS_VERIFICATION", "DONE", "DISMISSED"];
 
   return (
     <div className="space-y-4">
@@ -166,6 +167,7 @@ export function OptimizationClient({ brands, tasks }: { brands: Array<{ id: stri
                 <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold">
                   {status === "OPEN" ? <CircleDot className="h-4 w-4 text-warning" /> : null}
                   {status === "IN_PROGRESS" ? <CircleDot className="h-4 w-4 text-chart-2" /> : null}
+                  {status === "NEEDS_VERIFICATION" ? <CircleDot className="h-4 w-4 text-warning" /> : null}
                   {status === "DONE" ? <CheckCircle2 className="h-4 w-4 text-success" /> : null}
                   {status === "DISMISSED" ? <XCircle className="h-4 w-4 text-muted-foreground" /> : null}
                   {STATUS_LABEL[status]}
@@ -204,9 +206,19 @@ export function OptimizationClient({ brands, tasks }: { brands: Array<{ id: stri
                               开始处理
                             </Button>
                           ) : null}
-                          {t.status === "OPEN" || t.status === "IN_PROGRESS" ? (
+                          {t.status === "IN_PROGRESS" ? (
+                            <Button size="sm" variant="outline" onClick={() => updateStatus(t.id, "NEEDS_VERIFICATION")}>
+                              提交验证
+                            </Button>
+                          ) : null}
+                          {t.status === "NEEDS_VERIFICATION" ? (
+                            <Button size="sm" variant="outline" onClick={() => updateStatus(t.id, "DONE")}>
+                              验证通过
+                            </Button>
+                          ) : null}
+                          {t.status === "OPEN" || t.status === "IN_PROGRESS" || t.status === "NEEDS_VERIFICATION" ? (
                             <>
-                              <Button size="sm" variant="outline" onClick={() => updateStatus(t.id, "DONE")}>
+                              <Button size="sm" variant="ghost" onClick={() => updateStatus(t.id, "DONE")}>
                                 标记完成
                               </Button>
                               <Button size="sm" variant="ghost" onClick={() => updateStatus(t.id, "DISMISSED")}>

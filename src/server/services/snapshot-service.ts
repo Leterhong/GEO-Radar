@@ -42,6 +42,7 @@ export function configFingerprint(dataset: Pick<RoundDataset, "brand" | "competi
     brand: dataset.brand
       ? {
           name: dataset.brand.name,
+          englishName: dataset.brand.englishName,
           aliases: [...dataset.brand.aliases].sort(),
           websiteDomain: dataset.brand.websiteDomain,
           officialSubdomains: [...dataset.brand.officialSubdomains].sort(),
@@ -355,6 +356,7 @@ export async function getSnapshotRoundDataset(
         select: {
           id: true,
           name: true,
+          englishName: true,
           websiteDomain: true,
           aliases: true,
           officialSubdomains: true,
@@ -387,6 +389,7 @@ export async function getSnapshotRoundDataset(
       ? {
           id: task.brand.id,
           name: task.brand.name,
+          englishName: task.brand.englishName,
           websiteDomain: task.brand.websiteDomain,
           aliases: task.brand.aliases,
           officialSubdomains: task.brand.officialSubdomains ?? [],
@@ -399,7 +402,7 @@ export async function getSnapshotRoundDataset(
     brandSnapshot?.competitors ??
     (task.brandId
       ? (
-          await prisma.competitor.findMany({ where: { workspaceId, brandId: task.brandId } })
+          await prisma.competitor.findMany({ where: { workspaceId, brandId: task.brandId, enabled: true } })
         ).map((c) => ({ id: c.id, name: c.name, aliases: c.aliases, websiteDomain: c.websiteDomain }))
       : []);
 
@@ -506,6 +509,7 @@ export async function reanalyzeTaskEvidence(
         select: {
           id: true,
           name: true,
+          englishName: true,
           aliases: true,
           websiteDomain: true,
           officialSubdomains: true,
@@ -520,7 +524,7 @@ export async function reanalyzeTaskEvidence(
     throw new SnapshotError("TASK_RUNNING", "任务尚未执行完成，不能重新分析");
   }
   const competitors = task.brandId
-    ? await prisma.competitor.findMany({ where: { workspaceId, brandId: task.brandId } })
+    ? await prisma.competitor.findMany({ where: { workspaceId, brandId: task.brandId, enabled: true } })
     : [];
 
   const evidenceRows = await prisma.evidence.findMany({
@@ -541,6 +545,7 @@ export async function reanalyzeTaskEvidence(
       task.brand
         ? {
             name: task.brand.name,
+            englishName: task.brand.englishName,
             aliases: task.brand.aliases,
             websiteDomain: task.brand.websiteDomain,
             officialSubdomains: task.brand.officialSubdomains,

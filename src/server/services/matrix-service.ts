@@ -154,6 +154,7 @@ export interface RoundDataset {
   brand: {
     id: string;
     name: string;
+    englishName: string | null;
     websiteDomain: string | null;
     aliases: string[];
     officialSubdomains: string[];
@@ -454,6 +455,7 @@ export async function buildRoundDataset(
         select: {
           id: true,
           name: true,
+          englishName: true,
           websiteDomain: true,
           aliases: true,
           officialSubdomains: true,
@@ -468,7 +470,7 @@ export async function buildRoundDataset(
 
   const competitors = task.brandId
     ? await prisma.competitor.findMany({
-        where: { workspaceId, brandId: task.brandId },
+        where: { workspaceId, brandId: task.brandId, enabled: true },
         orderBy: { createdAt: "asc" },
       })
     : [];
@@ -478,6 +480,7 @@ export async function buildRoundDataset(
         brand?: {
           id: string;
           name: string;
+          englishName?: string | null;
           websiteDomain: string | null;
           aliases: string[];
           officialSubdomains?: string[];
@@ -492,6 +495,7 @@ export async function buildRoundDataset(
     ? {
         id: task.brand.id,
         name: task.brand.name,
+        englishName: task.brand.englishName,
         websiteDomain: task.brand.websiteDomain,
         aliases: task.brand.aliases,
         officialSubdomains: task.brand.officialSubdomains ?? [],
@@ -502,6 +506,7 @@ export async function buildRoundDataset(
       ? {
           id: snapshotConfig.brand.id,
           name: snapshotConfig.brand.name,
+          englishName: snapshotConfig.brand.englishName ?? null,
           websiteDomain: snapshotConfig.brand.websiteDomain,
           aliases: snapshotConfig.brand.aliases,
           officialSubdomains: snapshotConfig.brand.officialSubdomains ?? [],
@@ -509,12 +514,12 @@ export async function buildRoundDataset(
           productAliases: snapshotConfig.brand.productAliases ?? [],
         }
       : null;
-  const competitorViews = (task.brandId ? competitors.map((c) => ({
+  const competitorViews = snapshotConfig?.competitors ?? (task.brandId ? competitors.map((c) => ({
     id: c.id,
     name: c.name,
     aliases: c.aliases,
     websiteDomain: c.websiteDomain,
-  })) : snapshotConfig?.competitors ?? []);
+  })) : []);
 
   const entities: MatrixEntity[] = [
     ...(brand

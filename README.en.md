@@ -168,6 +168,7 @@ Rule versions: `url-norm-v1`, `page-classify-v1`, `evidence-v2`, `geo-metrics-v2
 | [docs/agent-integration.md](docs/agent-integration.md) | Skill / MCP / DSH |
 | [docs/yuanbao-integration.md](docs/yuanbao-integration.md) | SearchPro integration |
 | [docs/deployment.md](docs/deployment.md) | deployment, auth cookies, scheduling |
+| [docs/upgrade-report.md](docs/upgrade-report.md) | platform upgrade delivery report |
 | [docs/article-geo-radar.md](docs/article-geo-radar.md) | case study |
 
 ---

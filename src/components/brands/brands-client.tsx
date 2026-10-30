@@ -15,6 +15,7 @@ import { Plus, Pencil, Trash2 } from "lucide-react";
 interface BrandRow {
   id: string;
   name: string;
+  englishName?: string | null;
   websiteUrl?: string | null;
   websiteDomain?: string | null;
   aliases: string[];
@@ -34,6 +35,7 @@ export function BrandsClient({ brands }: { brands: BrandRow[] }) {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<BrandRow | null>(null);
   const [name, setName] = useState("");
+  const [englishName, setEnglishName] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [aliases, setAliases] = useState("");
   const [keywords, setKeywords] = useState("");
@@ -47,6 +49,7 @@ export function BrandsClient({ brands }: { brands: BrandRow[] }) {
   function openCreate() {
     setEditing(null);
     setName("");
+    setEnglishName("");
     setWebsiteUrl("");
     setAliases("");
     setKeywords("");
@@ -61,6 +64,7 @@ export function BrandsClient({ brands }: { brands: BrandRow[] }) {
   function openEdit(brand: BrandRow) {
     setEditing(brand);
     setName(brand.name);
+    setEnglishName(brand.englishName ?? "");
     setWebsiteUrl(brand.websiteUrl ?? "");
     setAliases(brand.aliases.join("、"));
     setKeywords(brand.keywords.join("、"));
@@ -81,6 +85,7 @@ export function BrandsClient({ brands }: { brands: BrandRow[] }) {
     try {
       const payload = {
         name: name.trim(),
+        englishName: englishName.trim(),
         websiteUrl: websiteUrl.trim(),
         aliases: aliases.split(/[,，、\n]/).map((s) => s.trim()).filter(Boolean).slice(0, 20),
         keywords: keywords.split(/[,，、\n]/).map((s) => s.trim()).filter(Boolean).slice(0, 30),
@@ -148,6 +153,7 @@ export function BrandsClient({ brands }: { brands: BrandRow[] }) {
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="font-medium">{b.name}</p>
+                    {b.englishName ? <p className="text-[11px] text-tertiary">{b.englishName}</p> : null}
                     <p className="mt-0.5 truncate font-mono text-[12px] text-tertiary">
                       {b.websiteDomain ?? "未配置官网"}
                     </p>
@@ -193,6 +199,10 @@ export function BrandsClient({ brands }: { brands: BrandRow[] }) {
             <div className="space-y-1.5">
               <Label htmlFor="bName">品牌名称</Label>
               <Input id="bName" value={name} onChange={(e) => setName(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="bEnglish">英文名称（可选）</Label>
+              <Input id="bEnglish" value={englishName} onChange={(e) => setEnglishName(e.target.value)} placeholder="English brand name" />
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="bSite">官网地址</Label>

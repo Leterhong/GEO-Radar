@@ -28,6 +28,7 @@ export async function PATCH(request: Request, { params }: Params) {
       where: { id: existing.id },
       data: {
         name: body.name,
+        englishName: body.englishName,
         aliases: body.aliases,
         websiteUrl: body.websiteUrl !== undefined ? body.websiteUrl || undefined : undefined,
         websiteDomain:

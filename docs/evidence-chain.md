@@ -46,7 +46,7 @@
 
 ## 4. 品牌匹配
 
-实现：`src/server/services/brand-matching.ts`（`EVIDENCE_RULE_VERSION = evidence-v2`）。
+实现：`src/server/services/brand-matching.ts`（`EVIDENCE_RULE_VERSION = evidence-v3`）。
 
 品牌配置：正式名称、别名、官网域名、官方子域名、产品名称、产品别名。
 
@@ -170,7 +170,7 @@ PATCH/DELETE /api/optimization-events/[id]
 ```text
 npm test
 Test Files  6 passed (6)
-Tests       122 passed (122)
+Tests       125 passed (125)
 ```
 
 新增测试：
@@ -221,7 +221,7 @@ npm run build      → 通过（Next.js 14.2.28，27 个页面）
 
 - 任务状态 `COMPLETED`，成功 1 / 失败 0；
 - 返回 10 条真实结果，全部 `isMock=false`；
-- 证据均写入 `normalizedUrl`，`ruleVersion=evidence-v2`；
+- 证据均写入 `normalizedUrl`，`ruleVersion=evidence-v3`；
 - 页面类型/来源角色/匹配依据/竞品匹配正常落库；
 - 验证后已删除该临时任务与原始响应，不保留伪造或演示用真实数据。
 
