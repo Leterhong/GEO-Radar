@@ -45,6 +45,7 @@ export async function POST(request: Request) {
         brandId: body.brandId || undefined,
         title: body.title,
         description: body.description,
+        pageUrl: body.pageUrl || undefined,
         type: body.type,
         priority: body.priority,
         status: "OPEN",

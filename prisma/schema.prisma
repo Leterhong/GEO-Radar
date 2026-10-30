@@ -626,6 +626,7 @@ model OptimizationTask {
   brandId      String?
   title        String
   description  String
+  pageUrl      String?
   type         String
   priority     OptimizationPriority @default(MEDIUM)
   status       OptimizationStatus   @default(OPEN)

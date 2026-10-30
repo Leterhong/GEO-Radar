@@ -17,6 +17,7 @@ interface TaskRow {
   id: string;
   title: string;
   description: string;
+  pageUrl: string | null;
   type: string;
   priority: string;
   status: string;
@@ -59,6 +60,7 @@ export function OptimizationClient({ brands, tasks }: { brands: Array<{ id: stri
   const [createOpen, setCreateOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [pageUrl, setPageUrl] = useState("");
   const [type, setType] = useState("MANUAL");
   const [priority, setPriority] = useState("MEDIUM");
   const [brandId, setBrandId] = useState(brands[0]?.id ?? "none");
@@ -96,7 +98,7 @@ export function OptimizationClient({ brands, tasks }: { brands: Array<{ id: stri
     const res = await fetch("/api/recommendations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title: title.trim(), description: description.trim(), type, priority, brandId: brandId === "none" ? "" : brandId }),
+      body: JSON.stringify({ title: title.trim(), description: description.trim(), pageUrl: pageUrl.trim(), type, priority, brandId: brandId === "none" ? "" : brandId }),
     });
     const json = await res.json();
     if (!json.ok) {
@@ -107,6 +109,7 @@ export function OptimizationClient({ brands, tasks }: { brands: Array<{ id: stri
     setCreateOpen(false);
     setTitle("");
     setDescription("");
+    setPageUrl("");
     router.refresh();
   }
 
@@ -198,6 +201,11 @@ export function OptimizationClient({ brands, tasks }: { brands: Array<{ id: stri
                           {t.brandName ? <span>品牌：{t.brandName}</span> : null}
                           <span>关联证据 {t.evidenceCount} 条</span>
                           <span>关联问题 {t.questionCount} 个</span>
+                          {t.pageUrl ? (
+                            <a href={t.pageUrl} target="_blank" rel="noopener noreferrer nofollow" className="max-w-full truncate text-primary hover:underline">
+                              目标页面
+                            </a>
+                          ) : null}
                           <span>创建于 {formatDate(t.createdAt)}</span>
                         </div>
                         <div className="mt-3 flex gap-2">
@@ -251,6 +259,10 @@ export function OptimizationClient({ brands, tasks }: { brands: Array<{ id: stri
             <div className="space-y-1.5">
               <Label htmlFor="optDesc">描述</Label>
               <Textarea id="optDesc" value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-24" />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="optPage">关联页面 URL（可选）</Label>
+              <Input id="optPage" value={pageUrl} onChange={(e) => setPageUrl(e.target.value)} placeholder="https://example.com/products/..." />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">

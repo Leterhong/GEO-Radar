@@ -24,6 +24,7 @@ export async function PATCH(request: Request, { params }: Params) {
         priority: body.priority,
         title: body.title,
         description: body.description,
+        pageUrl: body.pageUrl !== undefined ? body.pageUrl || null : undefined,
         assignee: body.assignee,
         dueDate: body.dueDate !== undefined ? (body.dueDate ? new Date(body.dueDate) : undefined) : undefined,
         completedAt: body.status === "DONE" ? new Date() : undefined,

@@ -33,5 +33,6 @@ describe("platform upgrade schemas", () => {
     expect(optimizationTaskUpdateSchema.safeParse({ status: "NEEDS_VERIFICATION" }).success).toBe(true);
     expect(optimizationTaskUpdateSchema.safeParse({ status: "DONE" }).success).toBe(true);
     expect(optimizationTaskUpdateSchema.safeParse({ status: "UNKNOWN" }).success).toBe(false);
+    expect(optimizationTaskUpdateSchema.safeParse({ pageUrl: "https://example.com/products/a" }).success).toBe(true);
   });
 });

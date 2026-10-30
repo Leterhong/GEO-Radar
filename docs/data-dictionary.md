@@ -53,7 +53,7 @@
 
 | 表 | 关键字段 | 说明 |
 | --- | --- | --- |
-| `OptimizationTask` | title, description, type(BRAND_MISSING/COMPETITOR_ADVANTAGE/OFFICIAL_SITE_LOW/...), priority, status(OPEN/IN_PROGRESS/NEEDS_VERIFICATION/DONE/DISMISSED), evidenceIds[], questionRefs[], generatedBy(RULE_ENGINE/MANUAL) | 规则建议附描述性免责说明；待验证状态用于记录优化后等待复测 |
+| `OptimizationTask` | title, description, pageUrl, type(BRAND_MISSING/COMPETITOR_ADVANTAGE/OFFICIAL_SITE_LOW/...), priority, status(OPEN/IN_PROGRESS/NEEDS_VERIFICATION/DONE/DISMISSED), evidenceIds[], questionRefs[], generatedBy(RULE_ENGINE/MANUAL) | 规则建议附描述性免责说明；待验证状态用于记录优化后等待复测；pageUrl 为目标页面 |
 | `OptimizationEvent` | brandId, name, occurredAt, contentChanged, pageUrls[], note, baselineTaskId, retestTaskId, createdById | 仅记录时间关联，页面与报告明确不推断因果 |
 | `AuditLog`（实验） | action=EXPERIMENT_CREATED, metadata.name/baselineTaskId/retestTaskId/comparison | 实验记录复用审计日志存储 |
 

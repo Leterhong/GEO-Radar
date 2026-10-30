@@ -90,6 +90,7 @@ export const evidenceReviewSchema = z.object({
 export const optimizationTaskSchema = z.object({
   title: z.string().trim().min(1, "请填写任务标题").max(150),
   description: z.string().trim().min(1, "请填写任务描述").max(3000),
+  pageUrl: z.string().trim().max(500).optional().or(z.literal("")),
   type: z.string().trim().min(1).max(60),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]),
   brandId: z.string().optional().or(z.literal("")),
@@ -103,6 +104,7 @@ export const optimizationTaskUpdateSchema = z.object({
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "CRITICAL"]).optional(),
   title: z.string().trim().min(1).max(150).optional(),
   description: z.string().trim().min(1).max(3000).optional(),
+  pageUrl: z.string().trim().max(500).optional().or(z.literal("")),
   assignee: z.string().trim().max(60).optional().or(z.literal("")),
   dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal("")),
 });

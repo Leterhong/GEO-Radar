@@ -40,6 +40,7 @@ export default async function OptimizationPage() {
           id: t.id,
           title: t.title,
           description: t.description,
+          pageUrl: t.pageUrl,
           type: t.type,
           priority: t.priority,
           status: t.status,
