@@ -4,7 +4,7 @@ import { ModelError } from "@/lib/model-providers/types";
 import type { ChatMessage } from "@/lib/model-providers/types";
 import { evaluateChatSearchGuard, runChatSearch } from "./search-runner";
 import { buildSearchContext, trimHistory, validateCitations } from "./context-builder";
-import { computeOverviewMetrics, computeSourceDomains, computeCompetitorMetrics } from "@/server/services/metrics";
+import { computeOverviewMetrics, computeSourceDomains, computeCompetitorMetrics, computeBrandTrend } from "@/server/services/metrics";
 import { getModelCredentialForStatus } from "@/lib/model-providers/registry";
 import { writeAuditLog } from "@/server/api/helpers";
 import { recordUsage } from "@/server/services/usage-service";
@@ -408,7 +408,7 @@ async function executeGeoAnalysis(run: ConversationRun, workspaceId: string, use
   const days = 30;
   const metrics = await computeOverviewMetrics(workspaceId, brandId ?? undefined, days);
   const brand = brandId ? await prisma.brand.findFirst({ where: { id: brandId, workspaceId } }) : null;
-  const [sources, competitors, recentTasks] = await Promise.all([
+  const [sources, competitors, recentTasks, trend, pendingOptimizations] = await Promise.all([
     computeSourceDomains(workspaceId, brandId ?? undefined, days, 8),
     brandId ? computeCompetitorMetrics(workspaceId, brandId, days) : Promise.resolve([]),
     prisma.searchTask.findMany({
@@ -416,6 +416,13 @@ async function executeGeoAnalysis(run: ConversationRun, workspaceId: string, use
       orderBy: { createdAt: "desc" },
       take: 5,
       select: { id: true, name: true, status: true, successItems: true, failedItems: true, totalItems: true },
+    }),
+    brandId ? computeBrandTrend(workspaceId, brandId, days) : Promise.resolve([]),
+    prisma.optimizationTask.findMany({
+      where: { workspaceId, brandId: brandId ?? undefined, status: { in: ["OPEN", "IN_PROGRESS", "NEEDS_VERIFICATION"] } },
+      orderBy: [{ priority: "desc" }, { createdAt: "desc" }],
+      take: 5,
+      select: { id: true, title: true, status: true, priority: true, pageUrl: true },
     }),
   ]);
 
@@ -427,11 +434,15 @@ async function executeGeoAnalysis(run: ConversationRun, workspaceId: string, use
     品牌出现率: metrics.brandAppearance.value,
     问题覆盖率: metrics.questionCoverage.value,
     官网来源覆盖率: metrics.officialSiteCoverage.value,
+    第三方页面覆盖率: metrics.thirdPartyCoverage.value,
     已完成真实任务数: metrics.completedTasks,
     失败问题数: metrics.failedItemTotal,
+    待复核证据数: metrics.pendingReviewCount,
     来源域名Top: sources,
     竞品出现率: competitors.map((c) => ({ name: c.name, rate: c.appearanceRate, samples: c.validSamples })),
     最近任务: recentTasks,
+    趋势: trend,
+    待处理优化: pendingOptimizations,
   };
 
   const enoughData = metrics.brandAppearance.validSamples > 0;
@@ -475,11 +486,21 @@ async function executeGeoAnalysis(run: ConversationRun, workspaceId: string, use
       `- 品牌出现率：**${fmt(metrics.brandAppearance.value)}**（分子 ${metrics.brandAppearance.numerator}）`,
       `- 问题覆盖率：**${fmt(metrics.questionCoverage.value)}**`,
       `- 官网来源覆盖率：${metrics.officialSiteCoverage.value === null ? "无法计算（未配置官网域名）" : `**${fmt(metrics.officialSiteCoverage.value)}**`}`,
+      `- 第三方页面覆盖率：**${fmt(metrics.thirdPartyCoverage.value)}**`,
+      "",
+      "**趋势**：",
+      trend.length >= 2
+        ? trend.map((point) => `- ${point.date}：品牌 ${fmt(point.appearanceRate)} / 官网 ${fmt(point.officialRate)} / 第三方 ${fmt(point.thirdPartyRate)}（样本 ${point.validSamples}）`).join("\n")
+        : "- 当前不足两轮有效日期，暂不生成趋势结论。",
       "",
       "**来源域名 Top**：",
       sources.length > 0 ? sources.map((s) => `- ${s.domain}（${s.evidenceCount} 条证据 / ${s.questionCount} 个问题）`).join("\n") : "- 暂无来源数据",
       "",
       competitors.length > 0 ? "**竞品对比（同口径）**：\n" + competitors.map((c) => `- ${c.name}：${fmt(c.appearanceRate)}（样本 ${c.validSamples}）`).join("\n") : "尚未添加竞品。",
+      "",
+      pendingOptimizations.length > 0
+        ? "**待处理优化**：\n" + pendingOptimizations.map((t) => `- [${t.priority}] ${t.title}（${t.status}${t.pageUrl ? `，目标页面 ${t.pageUrl}` : ""}）`).join("\n")
+        : "当前没有待处理优化任务。",
       "",
       `失败问题 ${metrics.failedItemTotal} 个（不计入分母）。「未检测到」仅表示样本中未出现，不代表品牌在全网无曝光。配置大模型后可获得更完整的解读。`,
     ].join("\n");
@@ -494,6 +515,7 @@ async function executeGeoAnalysis(run: ConversationRun, workspaceId: string, use
     "2. 「未检测到」只能表述为“本次样本中未出现”，不得断言品牌在 AI 搜索生态中无曝光。",
     "3. 用简体中文 Markdown 输出：分析目标 / 数据范围与样本量 / 关键指标 / 主要发现 / 优化建议（附优先级）/ 下一步验证方法。",
     "4. 优化建议必须能对应到数据中的现象（例如某来源高频出现、某竞品在样本中占优）。",
+    "5. 趋势只在有两个及以上有效日期时解读；单轮数据不能称为趋势。优化任务是待办，不是已证明的效果。",
   ].join("\n");
   const messages: ChatMessage[] = [
     { role: "system", content: systemPrompt },
