@@ -54,6 +54,7 @@ export async function POST(request: Request) {
           brandId: body.brandId || undefined,
           questionSetId: body.questionSetId || undefined,
           questionIds: body.questionIds,
+          questions: body.questions,
           provider: body.executionMode === "REAL" ? "YUANBAO" : "MOCK",
           executionMode: body.executionMode,
           maxResults: body.maxResults,

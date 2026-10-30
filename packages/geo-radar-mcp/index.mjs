@@ -52,6 +52,59 @@ function errorResult(error) {
   return { isError: true, content: [{ type: "text", text: error instanceof Error ? error.message : String(error) }] };
 }
 
+async function createAndRun({ name, queries, brandId, executionMode, maxResults, confirmReal, timeoutSeconds = 60 }) {
+  if (!queries.length) throw new Error("At least one query is required.");
+  if (executionMode === "REAL" && confirmReal !== true) {
+    throw new Error("REAL search can consume paid quota. Ask the user for explicit approval, then pass confirmReal=true. Use MOCK for workflow tests.");
+  }
+  const task = await api("/api/search-tasks", {
+    method: "POST",
+    body: JSON.stringify({
+      name: name || `Agent search ${new Date().toISOString().slice(0, 19)}`,
+      brandId: brandId || undefined,
+      questions: queries.map((query) => ({ text: query, category: "AGENT_SEARCH" })),
+      executionMode,
+      maxResults: maxResults ?? 10,
+    }),
+  });
+  await api(`/api/search-tasks/${encodeURIComponent(task.id)}/start`, { method: "POST" });
+  const deadline = Date.now() + Math.max(5, Math.min(120, timeoutSeconds)) * 1000;
+  let detail;
+  while (Date.now() < deadline) {
+    detail = await api(`/api/search-tasks/${encodeURIComponent(task.id)}`);
+    if (!["QUEUED", "RUNNING"].includes(detail.task.status)) break;
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+  }
+  return compactTask(detail.task, detail.items);
+}
+
+async function evidenceList(filters) {
+  const q = new URLSearchParams();
+  for (const [key, value] of Object.entries(filters)) {
+    if (value !== undefined && value !== null && value !== "") q.set(key, String(value));
+  }
+  q.set("pageSize", String(filters.pageSize ?? 50));
+  return api(`/api/evidence?${q.toString()}`);
+}
+
+function summarizeEvidence(rows) {
+  const byDomain = new Map();
+  const byPageType = new Map();
+  const byRole = new Map();
+  for (const row of rows) {
+    byDomain.set(row.domain ?? "(unknown)", (byDomain.get(row.domain ?? "(unknown)") ?? 0) + 1);
+    byPageType.set(row.pageType ?? "UNKNOWN", (byPageType.get(row.pageType ?? "UNKNOWN") ?? 0) + 1);
+    byRole.set(row.sourceRole ?? "UNKNOWN", (byRole.get(row.sourceRole ?? "UNKNOWN") ?? 0) + 1);
+  }
+  const sortMap = (map) => [...map.entries()].sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ name, count }));
+  return {
+    sampleSize: rows.length,
+    domains: sortMap(byDomain).slice(0, 10),
+    pageTypes: sortMap(byPageType),
+    sourceRoles: sortMap(byRole),
+  };
+}
+
 function compactTask(task, items) {
   return {
     id: task.id,
@@ -334,6 +387,200 @@ server.registerTool(
           : undefined,
         snapshotOmitted: report.snapshot ? "report snapshot omitted; set includeMarkdown=true for the full report" : undefined,
       });
+    } catch (e) {
+      return errorResult(e);
+    }
+  }
+);
+
+server.registerTool(
+  "geo_search_web",
+  {
+    description:
+      "Run a real/MOCK Yuanbao web search for one query. Defaults to MOCK; REAL requires confirmReal=true. Creates a GEO Radar task, starts it and returns stored results/evidence. This never invents search results.",
+    inputSchema: {
+      query: z.string().min(1),
+      brandId: z.string().optional(),
+      executionMode: z.enum(["MOCK", "REAL"]).optional(),
+      maxResults: z.number().int().min(1).max(50).optional(),
+      confirmReal: z.boolean().optional(),
+      timeoutSeconds: z.number().int().min(5).max(120).optional(),
+    },
+  },
+  async ({ query, brandId, executionMode = "MOCK", maxResults = 10, confirmReal = false, timeoutSeconds = 60 }) => {
+    try {
+      const task = await createAndRun({
+        name: `Agent search: ${query.slice(0, 80)}`,
+        queries: [query],
+        brandId,
+        executionMode,
+        maxResults,
+        confirmReal,
+        timeoutSeconds,
+      });
+      return text(task);
+    } catch (e) {
+      return errorResult(e);
+    }
+  }
+);
+
+server.registerTool(
+  "geo_batch_search",
+  {
+    description:
+      "Run one real/MOCK task containing up to 10 queries. Defaults to MOCK; REAL requires confirmReal=true. Results are stored as a normal GEO Radar task.",
+    inputSchema: {
+      queries: z.array(z.string().min(1)).min(1).max(10),
+      brandId: z.string().optional(),
+      executionMode: z.enum(["MOCK", "REAL"]).optional(),
+      maxResults: z.number().int().min(1).max(50).optional(),
+      confirmReal: z.boolean().optional(),
+      timeoutSeconds: z.number().int().min(5).max(120).optional(),
+    },
+  },
+  async ({ queries, brandId, executionMode = "MOCK", maxResults = 10, confirmReal = false, timeoutSeconds = 60 }) => {
+    try {
+      const task = await createAndRun({
+        name: `Agent batch search (${queries.length} queries)`,
+        queries,
+        brandId,
+        executionMode,
+        maxResults,
+        confirmReal,
+        timeoutSeconds,
+      });
+      return text(task);
+    } catch (e) {
+      return errorResult(e);
+    }
+  }
+);
+
+server.registerTool(
+  "geo_list_evidence",
+  {
+    description: "List stored page-level evidence in the workspace, newest first. Supports brand/domain/task/pageType/mentionStatus filters.",
+    inputSchema: {
+      brandId: z.string().optional(),
+      domain: z.string().optional(),
+      taskId: z.string().optional(),
+      pageType: z.string().optional(),
+      mentionStatus: z.string().optional(),
+      pageSize: z.number().int().min(1).max(100).optional(),
+    },
+  },
+  async ({ brandId, domain, taskId, pageType, mentionStatus, pageSize = 50 }) => {
+    try {
+      const data = await evidenceList({ brandId, domain, taskId, pageType, mentionStatus, pageSize });
+      return text({ total: data.total, page: data.page, pageSize: data.pageSize, evidence: data.evidence });
+    } catch (e) {
+      return errorResult(e);
+    }
+  }
+);
+
+server.registerTool(
+  "geo_search_evidence",
+  {
+    description: "Search stored evidence by text and optional brand/domain/date filters. This is evidence search, not a new web search.",
+    inputSchema: {
+      search: z.string().min(1),
+      brandId: z.string().optional(),
+      domain: z.string().optional(),
+      since: z.string().optional(),
+      pageSize: z.number().int().min(1).max(100).optional(),
+    },
+  },
+  async ({ search, brandId, domain, since, pageSize = 50 }) => {
+    try {
+      const data = await evidenceList({ search, brandId, domain, since, pageSize });
+      return text({ total: data.total, evidence: data.evidence });
+    } catch (e) {
+      return errorResult(e);
+    }
+  }
+);
+
+server.registerTool(
+  "geo_analyze_brand",
+  {
+    description: "Analyze brand visibility from stored real evidence: mention rate, question coverage, official/third-party coverage, trend and sources. No model is called.",
+    inputSchema: { brandId: z.string().optional(), days: z.number().int().min(1).max(365).optional() },
+  },
+  async ({ brandId, days = 30 }) => {
+    try {
+      const q = new URLSearchParams({ days: String(days) });
+      if (brandId) q.set("brandId", brandId);
+      const data = await api(`/api/analytics/overview?${q.toString()}`);
+      return text({ metrics: data.metrics, trend: data.trend, sources: data.sources });
+    } catch (e) {
+      return errorResult(e);
+    }
+  }
+);
+
+server.registerTool(
+  "geo_analyze_domain",
+  {
+    description: "Analyze official-domain/page-type coverage from stored evidence for a brand. Returns aggregated page types and source roles; sample size is explicit.",
+    inputSchema: { brandId: z.string(), pageSize: z.number().int().min(1).max(200).optional() },
+  },
+  async ({ brandId, pageSize = 100 }) => {
+    try {
+      const data = await evidenceList({ brandId, pageSize });
+      return text({ totalEvidence: data.total, ...summarizeEvidence(data.evidence) });
+    } catch (e) {
+      return errorResult(e);
+    }
+  }
+);
+
+server.registerTool(
+  "geo_compare_competitors",
+  {
+    description: "Compare brand and competitor appearance rate using the same valid-question denominator. No model is called.",
+    inputSchema: { brandId: z.string(), days: z.number().int().min(1).max(365).optional() },
+  },
+  async ({ brandId, days = 30 }) => {
+    try {
+      const data = await api(`/api/analytics/competitors?brandId=${encodeURIComponent(brandId)}&days=${days}`);
+      return text(data);
+    } catch (e) {
+      return errorResult(e);
+    }
+  }
+);
+
+server.registerTool(
+  "geo_analyze_citations",
+  {
+    description: "Analyze which domains/page types are cited in stored evidence for a brand. Returns an explicit sample size.",
+    inputSchema: { brandId: z.string(), pageSize: z.number().int().min(1).max(200).optional() },
+  },
+  async ({ brandId, pageSize = 100 }) => {
+    try {
+      const data = await evidenceList({ brandId, pageSize });
+      return text({ totalEvidence: data.total, ...summarizeEvidence(data.evidence) });
+    } catch (e) {
+      return errorResult(e);
+    }
+  }
+);
+
+server.registerTool(
+  "geo_generate_report",
+  {
+    description: "Generate a frozen evidence report for a REAL task, optionally comparing a baseline task. Mock tasks are rejected by the server.",
+    inputSchema: { taskId: z.string(), compareTaskId: z.string().optional(), title: z.string().optional() },
+  },
+  async ({ taskId, compareTaskId, title }) => {
+    try {
+      const report = await api("/api/reports", {
+        method: "POST",
+        body: JSON.stringify({ taskId, compareTaskId, title }),
+      });
+      return text(report);
     } catch (e) {
       return errorResult(e);
     }

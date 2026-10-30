@@ -23,6 +23,8 @@ export interface CreateSearchTaskInput {
   questionSetId?: string;
   questionSetVersionId?: string;
   questionIds?: string[];
+  /** ad hoc questions for agent search; not persisted as a QuestionSet */
+  questions?: Array<{ id?: string; text: string; category?: string | null }>;
   provider: "YUANBAO" | "MOCK";
   executionMode: "REAL" | "MOCK";
   maxResults?: number;
@@ -110,12 +112,16 @@ export async function createSearchTask(
 
   const { brand, competitors } = await loadBrandContext(workspaceId, input.brandId);
 
-  let questions: Array<{ id: string; text: string; category: string | null }> = [];
+  let questions: Array<{ id?: string; text: string; category: string | null }> = [];
   let questionSetId: string | undefined;
   let questionSetVersionId: string | undefined;
   let questionSetVersion: number | undefined;
 
-  if (input.questionIds && input.questionIds.length > 0) {
+  if (input.questions && input.questions.length > 0) {
+    questions = input.questions
+      .map((q) => ({ id: q.id, text: q.text.trim(), category: q.category ?? null }))
+      .filter((q) => q.text !== "");
+  } else if (input.questionIds && input.questionIds.length > 0) {
     const rows = await prisma.question.findMany({
       where: { workspaceId, id: { in: input.questionIds }, enabled: true },
       select: { id: true, text: true, category: true, questionSetId: true },

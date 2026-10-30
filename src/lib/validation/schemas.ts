@@ -73,6 +73,16 @@ export const searchTaskCreateSchema = z.object({
   brandId: z.string().optional().or(z.literal("")),
   questionSetId: z.string().optional().or(z.literal("")),
   questionIds: z.array(z.string()).max(100).optional(),
+  questions: z
+    .array(
+      z.object({
+        id: z.string().optional(),
+        text: z.string().trim().min(1).max(300),
+        category: z.string().trim().max(60).optional(),
+      })
+    )
+    .max(100)
+    .optional(),
   executionMode: z.enum(["REAL", "MOCK"]),
   maxResults: z.number().int().optional(),
   mode: z.number().int().optional(),

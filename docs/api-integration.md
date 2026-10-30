@@ -55,7 +55,7 @@
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
 | GET | `/api/search-tasks` | 任务列表（分页） |
-| POST | `/api/search-tasks` | 创建任务（QUEUED；不发请求；REAL 模式过守卫） |
+| POST | `/api/search-tasks` | 创建任务（QUEUED；不发请求；REAL 模式过守卫）；支持 `questions:[{text,category}]` 做 Agent 临时搜索 |
 | GET | `/api/search-tasks/[taskId]` | 任务详情 + 全部 item |
 | POST | `/api/search-tasks/[taskId]/start` | 用户确认后启动（异步执行，返回即轮询） |
 | POST | `/api/search-tasks/[taskId]/cancel` | 取消（排队即取消；执行中置 cancelRequested） |

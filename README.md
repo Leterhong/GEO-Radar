@@ -68,9 +68,19 @@ GEO Radar 也可以被 Agent 直接调用。
 
 | 形态 | 作用 |
 | --- | --- |
-| [Agent Skill](https://github.com/Leterhong/GEO-Radar/tree/main/skills/geo-radar) | 工作流、证据引用、成本与安全规则 |
-| [MCP Server](https://github.com/Leterhong/GEO-Radar/tree/main/packages/geo-radar-mcp) | 12 个 `geo_*` 工具，支持 Claude Code / Cursor / DSH |
-| [DSH Plugin](https://github.com/Leterhong/GEO-Radar/tree/main/packages/dsh-geo-radar) | 纯声明插件，挂载为 `mcp__geo-radar__*` |
+| [Agent Skill](https://github.com/Leterhong/GEO-Radar/tree/main/skills/geo-radar) | 工作流、证据引用、成本与安全规则；含 references/examples |
+| [MCP Server](https://github.com/Leterhong/GEO-Radar/tree/main/packages/geo-radar-mcp) | 21 个 `geo_*` 工具：搜索、证据、分析、报告 |
+| [DSH Plugin](https://github.com/Leterhong/GEO-Radar/tree/main/packages/dsh-geo-radar) | 通过官方 `dsh-mcp-client` 挂载为 `mcp__geo-radar__*` |
+
+MCP 工具覆盖：
+
+```text
+geo_search_web / geo_batch_search
+geo_list_evidence / geo_search_evidence / geo_get_evidence
+geo_analyze_brand / geo_analyze_domain
+geo_compare_competitors / geo_analyze_citations
+geo_generate_report / geo_get_report
+```
 
 ### 1. 创建 Token
 
@@ -79,7 +89,7 @@ npm run token:create -- you@example.com "MCP token"
 # 只显示一次：gr_...
 ```
 
-也可以在 **设置 → API Token / MCP** 创建/撤销。Token 是 workspace 级凭证，只存 SHA-256 哈希。
+也可以在 **设置 → API Token / MCP** 创建/撤销。Token 只存 SHA-256 哈希；可选择只读或读写。
 
 ### 2. MCP 配置
 
@@ -110,7 +120,7 @@ npm run smoke:mcp
 export GEO_RADAR_URL=http://127.0.0.1:3000
 export GEO_RADAR_TOKEN=gr_...
 node scripts/install-dsh-plugin.mjs
-dsh plugin --profile web add "$PWD/packages/dsh-geo-radar"
+dsh plugin --profile desktop add "$PWD/packages/dsh-geo-radar"
 # 重启 DSH，出现 mcp__geo-radar__geo_* 工具
 ```
 

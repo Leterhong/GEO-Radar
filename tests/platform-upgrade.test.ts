@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { brandSchema, competitorSchema, optimizationTaskUpdateSchema } from "@/lib/validation/schemas";
+import { brandSchema, competitorSchema, optimizationTaskUpdateSchema, searchTaskCreateSchema } from "@/lib/validation/schemas";
 
 describe("platform upgrade schemas", () => {
   it("accepts brand English name and product metadata", () => {
@@ -34,5 +34,14 @@ describe("platform upgrade schemas", () => {
     expect(optimizationTaskUpdateSchema.safeParse({ status: "DONE" }).success).toBe(true);
     expect(optimizationTaskUpdateSchema.safeParse({ status: "UNKNOWN" }).success).toBe(false);
     expect(optimizationTaskUpdateSchema.safeParse({ pageUrl: "https://example.com/products/a" }).success).toBe(true);
+  });
+
+  it("accepts ad hoc agent search questions", () => {
+    const parsed = searchTaskCreateSchema.safeParse({
+      name: "Agent search",
+      executionMode: "MOCK",
+      questions: [{ text: "AI 搜索助手有哪些", category: "AGENT_SEARCH" }],
+    });
+    expect(parsed.success).toBe(true);
   });
 });

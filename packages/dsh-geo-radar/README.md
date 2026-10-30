@@ -1,48 +1,61 @@
 # @geo-radar/dsh-plugin
 
-DSH plugin declaration that mounts the GEO Radar MCP server into DSH as:
+DSH plugin that mounts the GEO Radar MCP server as native DSH tools:
 
 ```text
-mcp__geo-radar__geo_list_brands
-mcp__geo-radar__geo_get_matrix
-mcp__geo-radar__geo_compare_rounds
+mcp__geo-radar__geo_search_web
+mcp__geo-radar__geo_analyze_brand
+mcp__geo-radar__geo_list_evidence
+mcp__geo-radar__geo_compare_competitors
+mcp__geo-radar__geo_generate_report
 ...
 ```
 
-This package is a **pure declaration** DSH plugin. It does not contain UI code; it inserts one
-`@deepseek-ai/dsh-mcp-client` row into the profile.
+This is a **DSH bundle declaration** plugin. It inserts the official
+`@deepseek-ai/dsh-mcp-client` bridge into the profile. GEO Radar business logic
+stays in the GEO Radar Core API; the plugin does not duplicate search or metrics.
+
+## DSH version
+
+- Tested against the DSH plugin bundle format used by current DSH desktop builds.
+- Uses the official `@deepseek-ai/dsh-mcp-client` package.
+- No DSH core source files are modified.
 
 ## Install
 
 From the GEO Radar repo:
 
 ```bash
-# 1. Get a workspace token (printed once)
+# 1. token (printed once)
 npm run token:create -- you@example.com "DSH MCP"
 
-# 2. Put URL + token in the environment
+# 2. endpoint + token
 export GEO_RADAR_URL=http://127.0.0.1:3000
 export GEO_RADAR_TOKEN=gr_...
 
-# 3. Generate the patch with the absolute MCP server path
+# 3. generate the patch with absolute MCP path
 node scripts/install-dsh-plugin.mjs
 
-# 4. Install this plugin into the DSH profile and restart DSH
-dsh plugin --profile web add "$PWD/packages/dsh-geo-radar"
+# 4. install into the profile actually used by DSH
+#    desktop app: often "desktop"; web: "web"
+dsh plugin --profile desktop add "$PWD/packages/dsh-geo-radar"
 ```
 
-On Windows PowerShell:
+Windows PowerShell:
 
 ```powershell
 $env:GEO_RADAR_URL = "http://127.0.0.1:3000"
 $env:GEO_RADAR_TOKEN = "gr_..."
+# optional: $env:DSH_PROFILE = "desktop"
 node scripts/install-dsh-plugin.mjs
-dsh plugin --profile web add "$PWD\packages\dsh-geo-radar"
+dsh plugin --profile desktop add "$PWD\packages\dsh-geo-radar"
 ```
 
-Restart DSH after installing. Tools appear after the next boot.
+Restart DSH after installing. `dsh.profile.bundles` is read at boot.
 
-## What the generated patch looks like
+## Configuration
+
+The installer creates `packages/dsh-geo-radar/cordis.patch.yml` with:
 
 ```yaml
 - insert:
@@ -59,17 +72,73 @@ Restart DSH after installing. Tools appear after the next boot.
           GEO_RADAR_TOKEN: 'gr_...'
 ```
 
-`cordis.patch.yml` is generated locally and is gitignored because it contains a token.
+The file contains a token and is gitignored. Use a read-only token if the Agent
+only needs evidence/analysis; use a read/write token for search or report generation.
 
-## Troubleshooting
+## Tools exposed in DSH
 
-- **No `mcp__geo-radar__*` tools**: restart DSH; `dsh.profile.bundles` is read at boot.
-- **Wrong DSH_HOME**: the plugin only applies to the profile tree DSH is actually booting.
-- **MCP starts but tools fail**: check `GEO_RADAR_URL` and that the app is running.
-- **401**: create a new token with `npm run token:create`.
-- **Need to uninstall**: `dsh plugin --profile web remove @geo-radar/dsh-plugin`.
+Search:
+
+```text
+mcp__geo-radar__geo_search_web
+mcp__geo-radar__geo_batch_search
+mcp__geo-radar__geo_create_task
+mcp__geo-radar__geo_start_task
+```
+
+Evidence:
+
+```text
+mcp__geo-radar__geo_list_evidence
+mcp__geo-radar__geo_search_evidence
+mcp__geo-radar__geo_get_evidence
+```
+
+Analysis:
+
+```text
+mcp__geo-radar__geo_analyze_brand
+mcp__geo-radar__geo_analyze_domain
+mcp__geo-radar__geo_compare_competitors
+mcp__geo-radar__geo_analyze_citations
+```
+
+Reports:
+
+```text
+mcp__geo-radar__geo_generate_report
+mcp__geo-radar__geo_get_report
+```
 
 ## Safety
 
-The MCP server exposes `geo_start_task`. For `REAL` tasks it requires `confirmReal=true`; still,
-only start a real task when the user explicitly approved the cost.
+- `REAL` search requires explicit `confirmReal=true`; ask the user first.
+- `MOCK` is not real search.
+- A read-only token returns `403 TOKEN_SCOPE_DENIED` on writes.
+- The plugin does not call a model by default.
+- Do not commit `cordis.patch.yml` or the token.
+
+## Troubleshooting
+
+| Symptom | Fix |
+| --- | --- |
+| No `mcp__geo-radar__*` tools | restart DSH; confirm the profile matches the running app |
+| MCP starts but calls fail | check `GEO_RADAR_URL`; app must be running |
+| `401 INVALID_TOKEN` | create a new token |
+| `403 TOKEN_SCOPE_DENIED` | use a read/write token |
+| `PROVIDER_NOT_CONFIGURED` | configure Yuanbao SearchPro |
+| Wrong profile | use `--profile desktop` or `--profile web` matching `DSH_HOME` |
+
+## Uninstall
+
+```bash
+dsh plugin --profile desktop remove @geo-radar/dsh-plugin
+```
+
+Then restart DSH. Remove the generated `cordis.patch.yml` if it remains.
+
+## Verification boundary
+
+The package manifest, `dsh.bundle.patch`, YAML parsing and `npm pack` contents are
+covered by the repository checks. Actual `dsh plugin add` + restart requires a
+working DSH CLI/profile and is not claimed as passed when that environment is absent.

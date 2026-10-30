@@ -68,37 +68,77 @@ dsh plugin --profile web add "$PWD/packages/dsh-geo-radar"
 
 ## Tools
 
+### Discovery and search
+
 | Tool | Use |
 | --- | --- |
 | `geo_list_brands` | find `brandId` |
 | `geo_list_question_sets` | find a fixed question set |
+| `geo_search_web` | run one real/MOCK query; REAL requires `confirmReal=true` |
+| `geo_batch_search` | run up to 10 queries in one task |
 | `geo_list_tasks` | find baseline/retest task IDs |
 | `geo_get_task` | per-question status, results, duration, RequestId |
 | `geo_wait_for_task` | poll a running task |
 | `geo_get_matrix` | brand × competitor evidence matrix |
-| `geo_get_evidence` | page-level evidence + raw metadata + reviews |
-| `geo_compare_rounds` | two-round comparison and volatility |
-| `geo_create_task` | create a QUEUED task (does not call search) |
+| `geo_create_task` | create a QUEUED task from a question set |
 | `geo_start_task` | start a task; REAL requires `confirmReal=true` |
-| `geo_create_report` | freeze an evidence report (REAL tasks only) |
-| `geo_get_report` | read a report (metadata + preview; `includeMarkdown=true` for full) |
+
+### Evidence
+
+| Tool | Use |
+| --- | --- |
+| `geo_list_evidence` | filter stored evidence by brand/domain/task/pageType/status |
+| `geo_search_evidence` | full-text search stored evidence |
+| `geo_get_evidence` | one evidence row + raw metadata + reviews |
+
+### Analysis and reports
+
+| Tool | Use |
+| --- | --- |
+| `geo_analyze_brand` | brand visibility metrics/trend/sources |
+| `geo_analyze_domain` | official/third-party/page-type coverage |
+| `geo_compare_competitors` | same-denominator competitor comparison |
+| `geo_analyze_citations` | cited domains/page types |
+| `geo_compare_rounds` | two-round comparison and volatility |
+| `geo_generate_report` | generate a frozen REAL-task report |
+| `geo_get_report` | read report metadata/preview; `includeMarkdown=true` for full |
 
 ## Safe workflow
 
+### Brand visibility
+
 1. `geo_list_brands` → confirm the brand.
-2. `geo_list_question_sets` → confirm the question set/version.
-3. `geo_list_tasks` → find a baseline and a retest.
-4. `geo_get_matrix` → read counts and metrics; **do not** infer beyond the sample.
-5. `geo_get_evidence` → verify a specific claim by URL/RequestId.
-6. `geo_compare_rounds` → report common questions, movement, page diff and data quality.
-7. `geo_create_report` → freeze the report; never edit historical numbers by hand.
+2. `geo_analyze_brand` → read existing metrics; if there is no data, `geo_search_web` with MOCK or approved REAL.
+3. `geo_list_evidence` → verify representative pages.
+4. `geo_generate_report` only if the user asks for a frozen report.
+
+### Competitor comparison
+
+1. Confirm all entities use the same question set/version.
+2. `geo_compare_competitors` → read rates and sample sizes.
+3. `geo_search_evidence` → verify a specific competitor claim.
+
+### Optimization before/after
+
+1. Identify baseline and retest task IDs.
+2. `geo_compare_rounds` → common questions, page diff, quality, volatility.
+3. Link the recorded optimization event/page URL.
+4. State observed change separately from causality.
 
 ### Real vs Mock
 
-- `MOCK` tasks are free and clearly labeled; they must not be presented as real search results.
-- `REAL` tasks call Tencent Cloud Yuanbao SearchPro and may cost quota.
-- **Never** call `geo_start_task` on a `REAL` task unless the user explicitly approved the cost. The tool requires `confirmReal=true`.
-- Failure, empty result, not-found and needs-review are different states; do not merge them.
+- `MOCK` results are deterministic test data and must be labeled as Mock.
+- `REAL` calls Tencent Cloud Yuanbao SearchPro and may cost quota.
+- **Never** run `REAL` unless the user explicitly approved the cost. Both search tools require `confirmReal=true`.
+- Failure, empty result, not-found and needs-review are different states.
+
+## References
+
+- [Search guide](references/search-guide.md)
+- [Evidence guide](references/evidence-guide.md)
+- [Analysis guide](references/analysis-guide.md)
+- [Report guide](references/report-guide.md)
+- [Examples](examples/)
 
 ## Output rules
 
@@ -119,6 +159,7 @@ dsh plugin --profile web add "$PWD/packages/dsh-geo-radar"
 ## Failure handling
 
 - `401`: check `GEO_RADAR_TOKEN` and that the token belongs to the workspace.
+- `403 TOKEN_SCOPE_DENIED`: use a writable token for task/report creation; read-only tokens can only query.
 - `403 SESSION_REQUIRED`: token management must use the browser session; create tokens via CLI.
 - `NO_WORKSPACE`: the token's workspace was deleted.
 - `TASK_NOT_FOUND`: the task belongs to another workspace.

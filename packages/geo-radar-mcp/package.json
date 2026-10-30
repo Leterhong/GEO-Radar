@@ -1,7 +1,8 @@
 {
   "name": "@geo-radar/mcp",
   "version": "0.1.0",
-  "description": "MCP server for GEO Radar — list brands, run evidence tasks, inspect matrices and generate reports.",
+  "description": "MCP server for GEO Radar — search, evidence, analysis, competitor comparison and reports.",
+  "keywords": ["mcp", "geo", "geo-radar", "deepseek-harness", "yuanbao"],
   "type": "module",
   "bin": {
     "geo-radar-mcp": "./index.mjs"
