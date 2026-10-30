@@ -62,6 +62,7 @@ const profile =
   (existsSync(join(homedir(), ".dsh", "profiles", "desktop")) ? "desktop" : "web");
 console.log("DSH patch written:", out);
 console.log("");
-console.log("Next:");
-console.log(`  dsh plugin --profile ${profile} add "${resolve(root, "packages/dsh-geo-radar")}"`);
+console.log("Next (run inside the package directory to avoid spaces in the absolute path):");
+console.log(`  cd "${resolve(root, "packages/dsh-geo-radar")}"`);
+console.log(`  dsh plugin --profile ${profile} add .`);
 console.log("  # restart DSH, then look for mcp__geo-radar__geo_* tools");

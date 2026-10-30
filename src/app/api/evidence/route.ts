@@ -48,61 +48,94 @@ export async function GET(request: Request) {
 /** 导出证据 CSV（仅当前工作空间、仅限有权限的数据）。 */
 export async function POST(request: Request) {
   return withWriteAuth(async ({ workspaceId, user }) => {
-    const body = (await request.json().catch(() => ({}))) as { filters?: Record<string, string> };
+    const body = (await request.json().catch(() => ({}))) as {
+      filters?: Record<string, string | string[] | number>;
+      limit?: number;
+    };
     const f = body.filters ?? {};
+    const str = (key: string) => (typeof f[key] === "string" ? (f[key] as string) : undefined);
+    const ids = Array.isArray(f.evidenceIds) ? f.evidenceIds.map(String) : undefined;
+    const limit = Math.min(5000, Math.max(1, Number(body.limit ?? f.limit ?? 5000)));
+    const since = str("since");
+    const until = str("until");
     const where: Prisma.EvidenceWhereInput = {
       workspaceId,
-      ...(f.brandId ? { brandId: f.brandId } : {}),
-      ...(f.taskId ? { taskId: f.taskId } : {}),
-      ...(f.domain ? { domain: f.domain } : {}),
-      ...(f.mentionStatus ? { mentionStatus: f.mentionStatus as never } : {}),
-      ...(f.pageType ? { pageType: f.pageType as never } : {}),
+      ...(str("brandId") ? { brandId: str("brandId") } : {}),
+      ...(str("taskId") ? { taskId: str("taskId") } : {}),
+      ...(str("domain") ? { domain: str("domain") } : {}),
+      ...(str("mentionStatus") ? { mentionStatus: str("mentionStatus") as never } : {}),
+      ...(str("pageType") ? { pageType: str("pageType") as never } : {}),
+      ...(str("search") ? { OR: [
+        { title: { contains: str("search"), mode: "insensitive" } },
+        { snippet: { contains: str("search"), mode: "insensitive" } },
+      ] } : {}),
+      ...(ids && ids.length > 0 ? { id: { in: ids } } : {}),
+      ...(since || until
+        ? { collectedAt: { ...(since ? { gte: new Date(since) } : {}), ...(until ? { lte: new Date(until) } : {}) } }
+        : {}),
     };
     const evidence = await prisma.evidence.findMany({
       where,
       orderBy: { collectedAt: "desc" },
-      take: 5000,
+      take: limit,
+      include: {
+        brand: { select: { name: true } },
+        task: { select: { name: true } },
+        result: { select: { extra: true } },
+      },
     });
+    const questionIds = Array.from(new Set(evidence.map((e) => e.questionId).filter((id): id is string => Boolean(id))));
+    const questions = questionIds.length
+      ? await prisma.question.findMany({ where: { id: { in: questionIds } }, select: { id: true, text: true } })
+      : [];
+    const questionText = new Map(questions.map((q) => [q.id, q.text]));
     const { serializeCsv } = await import("@/lib/csv");
     const csv = serializeCsv(
       [
+        "evidence_id",
+        "query",
+        "brand",
         "title",
         "url",
-        "normalizedUrl",
-        "domain",
-        "pageType",
-        "sourceRole",
-        "brandMatchBasis",
         "snippet",
-        "publishedAt",
-        "collectedAt",
-        "mentionStatus",
-        "isMock",
-        "taskId",
+        "site_name",
+        "score",
+        "request_id",
+        "collected_at",
+        "source_type",
+        "page_type",
+        "mention_status",
+        "is_mock",
+        "task_id",
       ],
-      evidence.map((e) => [
-        e.title,
-        e.url,
-        e.normalizedUrl ?? "",
-        e.domain ?? "",
-        e.pageType,
-        e.sourceRole,
-        e.brandMatchBasis.join("|"),
-        e.snippet ?? "",
-        e.publishedAt ?? "",
-        e.collectedAt.toISOString(),
-        e.mentionStatus,
-        e.isMock ? "true" : "false",
-        e.taskId,
-      ])
+      evidence.map((e) => {
+        const extra = (e.result?.extra ?? {}) as Record<string, unknown>;
+        return [
+          e.id,
+          e.questionId ? (questionText.get(e.questionId) ?? "") : "",
+          e.brand?.name ?? "",
+          e.title,
+          e.url,
+          e.snippet ?? "",
+          typeof extra.siteName === "string" ? extra.siteName : "",
+          typeof extra.score === "number" ? String(extra.score) : typeof extra.score === "string" ? extra.score : "",
+          e.requestId ?? "",
+          e.collectedAt.toISOString(),
+          e.sourceRole,
+          e.pageType,
+          e.mentionStatus,
+          e.isMock ? "true" : "false",
+          e.taskId,
+        ];
+      })
     );
     await writeAuditLog({
       workspaceId,
       userId: user.id,
       action: "EVIDENCE_EXPORTED",
-      metadata: { count: evidence.length },
+      metadata: { count: evidence.length, filters: Object.keys(f) },
     });
-    return new NextResponse(csv, {
+    return new NextResponse(`\uFEFF${csv}`, {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
         "Content-Disposition": `attachment; filename="georadar-evidence-${Date.now()}.csv"`,

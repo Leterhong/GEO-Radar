@@ -44,6 +44,26 @@ async function api(path, init = {}) {
   return json?.data ?? json;
 }
 
+async function apiText(path, init = {}) {
+  const res = await fetch(`${BASE}${path}`, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${TOKEN}`,
+      "Content-Type": "application/json",
+      ...(init.headers || {}),
+    },
+  });
+  const text = await res.text();
+  if (!res.ok) {
+    let message = text.slice(0, 500) || `HTTP ${res.status}`;
+    try {
+      message = JSON.parse(text)?.error?.message || message;
+    } catch {}
+    throw new Error(`${res.status}: ${message}`);
+  }
+  return text;
+}
+
 function text(value) {
   return { content: [{ type: "text", text: typeof value === "string" ? value : JSON.stringify(value, null, 2) }] };
 }
@@ -56,6 +76,9 @@ async function createAndRun({ name, queries, brandId, executionMode, maxResults,
   if (!queries.length) throw new Error("At least one query is required.");
   if (executionMode === "REAL" && confirmReal !== true) {
     throw new Error("REAL search can consume paid quota. Ask the user for explicit approval, then pass confirmReal=true. Use MOCK for workflow tests.");
+  }
+  if (executionMode === "REAL" && ![10, 20, 30, 40, 50].includes(maxResults)) {
+    throw new Error("Yuanbao SearchPro Cnt only supports 10/20/30/40/50. Set maxResults to one of those values.");
   }
   const task = await api("/api/search-tasks", {
     method: "POST",
@@ -581,6 +604,68 @@ server.registerTool(
         body: JSON.stringify({ taskId, compareTaskId, title }),
       });
       return text(report);
+    } catch (e) {
+      return errorResult(e);
+    }
+  }
+);
+
+server.registerTool(
+  "geo_export_evidence_csv",
+  {
+    description:
+      "Export stored evidence to CSV using the same filtering/export rules as the GEO Radar web API. Returns CSV content plus filename/metadata; it does not invent a download URL.",
+    inputSchema: {
+      brand: z.string().optional().describe("Brand name; resolved in the current workspace"),
+      domain: z.string().optional(),
+      query: z.string().optional().describe("Full-text filter on title/snippet"),
+      startDate: z.string().optional().describe("ISO date/time lower bound"),
+      endDate: z.string().optional().describe("ISO date/time upper bound"),
+      evidenceIds: z.array(z.string()).max(500).optional(),
+      limit: z.number().int().min(1).max(1000).optional(),
+    },
+  },
+  async ({ brand, domain, query, startDate, endDate, evidenceIds, limit = 500 }) => {
+    try {
+      let brandId;
+      if (brand) {
+        const brands = await api("/api/brands");
+        const found = (brands.brands ?? []).find((b) => b.name === brand);
+        if (!found) throw new Error(`Brand not found in this workspace: ${brand}`);
+        brandId = found.id;
+      }
+      const filters = {
+        ...(brandId ? { brandId } : {}),
+        ...(domain ? { domain } : {}),
+        ...(query ? { search: query } : {}),
+        ...(startDate ? { since: startDate } : {}),
+        ...(endDate ? { until: endDate } : {}),
+        ...(evidenceIds?.length ? { evidenceIds } : {}),
+      };
+      const csv = await apiText("/api/evidence", {
+        method: "POST",
+        body: JSON.stringify({ filters, limit }),
+      });
+      const filename = `georadar-evidence-${new Date().toISOString().slice(0, 10)}.csv`;
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(
+              {
+                filename,
+                bytes: Buffer.byteLength(csv, "utf8"),
+                rowHint: Math.max(0, csv.trim().split(/\r?\n/).length - 1),
+                filters,
+                note: "CSV content is returned in the next text block. It is not a public download URL.",
+              },
+              null,
+              2
+            ),
+          },
+          { type: "text", text: csv },
+        ],
+      };
     } catch (e) {
       return errorResult(e);
     }

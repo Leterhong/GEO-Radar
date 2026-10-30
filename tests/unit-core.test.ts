@@ -217,6 +217,13 @@ describe("CSV 工具", () => {
     expect(back.rows[1]?.[0]).toBe('x,"y"');
   });
 
+  it("阻断 CSV 公式注入", () => {
+    const csv = serializeCsv(["value"], [['=HYPERLINK("https://evil")'], ["+1"], ["@cmd"]]);
+    expect(csv).toContain("'=HYPERLINK");
+    expect(csv).toContain("'+1");
+    expect(csv).toContain("'@cmd");
+  });
+
   it("BOM 清理与大小限制", () => {
     expect(sanitizeCsvInput("\uFEFFtext")).toBe("text");
     expect(() => sanitizeCsvInput("x".repeat(600 * 1024))).toThrow(/过大/);

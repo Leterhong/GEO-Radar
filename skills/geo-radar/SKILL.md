@@ -90,6 +90,7 @@ dsh plugin --profile web add "$PWD/packages/dsh-geo-radar"
 | `geo_list_evidence` | filter stored evidence by brand/domain/task/pageType/status |
 | `geo_search_evidence` | full-text search stored evidence |
 | `geo_get_evidence` | one evidence row + raw metadata + reviews |
+| `geo_export_evidence_csv` | export filtered evidence as CSV content |
 
 ### Analysis and reports
 

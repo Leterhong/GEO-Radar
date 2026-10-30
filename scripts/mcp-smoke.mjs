@@ -48,6 +48,7 @@ const required = [
   "geo_analyze_citations",
   "geo_generate_report",
   "geo_get_report",
+  "geo_export_evidence_csv",
 ];
 for (const name of required) {
   if (!names.includes(name)) throw new Error(`missing tool: ${name}`);

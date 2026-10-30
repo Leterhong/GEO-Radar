@@ -51,6 +51,7 @@
     "reset-password": "node scripts/reset-password.mjs",
     "token:create": "node scripts/create-token.mjs",
     "dsh:install": "node scripts/install-dsh-plugin.mjs",
+    "dsh:native:install": "node scripts/install-dsh-native.mjs",
     "smoke:mcp": "node scripts/mcp-smoke.mjs",
     "key:import": "node scripts/import-env-key.mjs"
   },

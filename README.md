@@ -69,8 +69,9 @@ GEO Radar 也可以被 Agent 直接调用。
 | 形态 | 作用 |
 | --- | --- |
 | [Agent Skill](https://github.com/Leterhong/GEO-Radar/tree/main/skills/geo-radar) | 工作流、证据引用、成本与安全规则；含 references/examples |
-| [MCP Server](https://github.com/Leterhong/GEO-Radar/tree/main/packages/geo-radar-mcp) | 21 个 `geo_*` 工具：搜索、证据、分析、报告 |
-| [DSH Plugin](https://github.com/Leterhong/GEO-Radar/tree/main/packages/dsh-geo-radar) | 通过官方 `dsh-mcp-client` 挂载为 `mcp__geo-radar__*` |
+| [MCP Server](https://github.com/Leterhong/GEO-Radar/tree/main/packages/geo-radar-mcp) | 22 个 `geo_*` 工具：搜索、证据、分析、报告、CSV 导出 |
+| [DSH Plugin（MCP 模式）](https://github.com/Leterhong/GEO-Radar/tree/main/packages/dsh-geo-radar) | 通过官方 `dsh-mcp-client` 挂载为 `mcp__geo-radar__*` |
+| [DSH Native（Cordis 模式）](https://github.com/Leterhong/GEO-Radar/tree/main/packages/geo-radar-dsh) | `ctx.tools.register(defineTool(...))`，工具名为 `geo_*` |
 
 MCP 工具覆盖：
 
@@ -80,6 +81,7 @@ geo_list_evidence / geo_search_evidence / geo_get_evidence
 geo_analyze_brand / geo_analyze_domain
 geo_compare_competitors / geo_analyze_citations
 geo_generate_report / geo_get_report
+geo_export_evidence_csv
 ```
 
 ### 1. 创建 Token
@@ -116,13 +118,28 @@ npm run smoke:mcp
 
 ### 3. DSH 插件
 
+MCP 模式（官方桥接）：
+
 ```bash
 export GEO_RADAR_URL=http://127.0.0.1:3000
 export GEO_RADAR_TOKEN=gr_...
 node scripts/install-dsh-plugin.mjs
-dsh plugin --profile desktop add "$PWD/packages/dsh-geo-radar"
+cd packages/dsh-geo-radar
+dsh plugin --profile desktop add .
 # 重启 DSH，出现 mcp__geo-radar__geo_* 工具
 ```
+
+Cordis 原生模式：
+
+```bash
+node scripts/install-dsh-native.mjs
+cd packages/geo-radar-dsh
+dsh plugin --profile desktop add .
+# 重启 DSH，出现 geo_search_web / geo_analyze_brand / geo_list_evidence
+```
+
+两种模式二选一，不要同时启用，避免重复工具。DSH 原生模式依赖当前 DSH 的
+`@deepseek-ai/dsh-tools` 与 `tools` service；具体版本边界见包 README。
 
 ### 4. 安全边界
 
@@ -166,7 +183,7 @@ Yuanbao SearchPro
                       └─ Matrix / Comparison / Report
 ```
 
-规则版本：`url-norm-v1`、`page-classify-v1`、`evidence-v2`、`geo-metrics-v2`、`snapshot-v1`、`comparison-v1`、`search-report-v1`。
+规则版本：`url-norm-v1`、`page-classify-v1`、`evidence-v3`、`geo-metrics-v2`、`snapshot-v1`、`comparison-v1`、`search-report-v1`。
 
 ---
 
@@ -181,6 +198,7 @@ Yuanbao SearchPro
 | [docs/yuanbao-integration.md](docs/yuanbao-integration.md) | SearchPro 接入与错误处理 |
 | [docs/deployment.md](docs/deployment.md) | 部署、认证 Cookie、调度 |
 | [docs/upgrade-report.md](docs/upgrade-report.md) | 本轮平台升级交付报告 |
+| [docs/extensions-acceptance.md](docs/extensions-acceptance.md) | Skill / MCP / DSH / SearchPro 验收报告 |
 | [docs/article-geo-radar.md](docs/article-geo-radar.md) | 实战文章 |
 
 ---

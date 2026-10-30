@@ -67,8 +67,9 @@ Two principles:
 | Form | Purpose |
 | --- | --- |
 | [Agent Skill](https://github.com/Leterhong/GEO-Radar/tree/main/skills/geo-radar) | workflow, evidence citation and cost/safety rules |
-| [MCP Server](https://github.com/Leterhong/GEO-Radar/tree/main/packages/geo-radar-mcp) | 12 `geo_*` tools for Claude Code / Cursor / DSH |
-| [DSH Plugin](https://github.com/Leterhong/GEO-Radar/tree/main/packages/dsh-geo-radar) | pure declaration plugin exposing `mcp__geo-radar__*` |
+| [MCP Server](https://github.com/Leterhong/GEO-Radar/tree/main/packages/geo-radar-mcp) | 22 `geo_*` tools for search, evidence, analysis, reports and CSV export |
+| [DSH MCP bridge](https://github.com/Leterhong/GEO-Radar/tree/main/packages/dsh-geo-radar) | official `dsh-mcp-client` bridge exposing `mcp__geo-radar__*` |
+| [DSH Native](https://github.com/Leterhong/GEO-Radar/tree/main/packages/geo-radar-dsh) | Cordis `ctx.tools.register(defineTool(...))`, tools named `geo_*` |
 
 ### 1. Create a token
 
@@ -108,8 +109,18 @@ npm run smoke:mcp
 export GEO_RADAR_URL=http://127.0.0.1:3000
 export GEO_RADAR_TOKEN=gr_...
 node scripts/install-dsh-plugin.mjs
-dsh plugin --profile web add "$PWD/packages/dsh-geo-radar"
+cd packages/dsh-geo-radar
+dsh plugin --profile desktop add .
 # restart DSH; tools appear as mcp__geo-radar__geo_*
+```
+
+Native Cordis mode (choose one, not both):
+
+```bash
+node scripts/install-dsh-native.mjs
+cd packages/geo-radar-dsh
+dsh plugin --profile desktop add .
+# restart DSH; tools appear as geo_search_web / geo_analyze_brand / ...
 ```
 
 ### 4. Safety

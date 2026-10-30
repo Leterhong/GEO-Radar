@@ -64,10 +64,12 @@ export function parseCsv(text: string): CsvParseResult {
 }
 
 export function csvEscape(value: string): string {
-  if (/[",\n\r]/.test(value)) {
-    return `"${value.replace(/"/g, '""')}"`;
+  // CSV formula injection mitigation: prefix risky leading characters.
+  const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
+  if (/[",\n\r]/.test(safe)) {
+    return `"${safe.replace(/"/g, '""')}"`;
   }
-  return value;
+  return safe;
 }
 
 export function serializeCsv(headers: string[], rows: string[][]): string {

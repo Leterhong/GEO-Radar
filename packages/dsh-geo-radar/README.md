@@ -11,9 +11,9 @@ mcp__geo-radar__geo_generate_report
 ...
 ```
 
-This is a **DSH bundle declaration** plugin. It inserts the official
-`@deepseek-ai/dsh-mcp-client` bridge into the profile. GEO Radar business logic
-stays in the GEO Radar Core API; the plugin does not duplicate search or metrics.
+This is the **MCP bridge** package. A Cordis-native variant is available at
+[`@geo-radar/dsh-native`](../geo-radar-dsh/README.md); enable one or the other,
+not both.
 
 ## DSH version
 
@@ -36,9 +36,9 @@ export GEO_RADAR_TOKEN=gr_...
 # 3. generate the patch with absolute MCP path
 node scripts/install-dsh-plugin.mjs
 
-# 4. install into the profile actually used by DSH
-#    desktop app: often "desktop"; web: "web"
-dsh plugin --profile desktop add "$PWD/packages/dsh-geo-radar"
+# 4. install from the package directory (avoids spaces in the path)
+cd packages/dsh-geo-radar
+dsh plugin --profile desktop add .
 ```
 
 Windows PowerShell:
@@ -48,7 +48,8 @@ $env:GEO_RADAR_URL = "http://127.0.0.1:3000"
 $env:GEO_RADAR_TOKEN = "gr_..."
 # optional: $env:DSH_PROFILE = "desktop"
 node scripts/install-dsh-plugin.mjs
-dsh plugin --profile desktop add "$PWD\packages\dsh-geo-radar"
+cd packages/dsh-geo-radar
+dsh plugin --profile desktop add .
 ```
 
 Restart DSH after installing. `dsh.profile.bundles` is read at boot.

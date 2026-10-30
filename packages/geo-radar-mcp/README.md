@@ -76,6 +76,7 @@ Ad hoc searches are stored as tasks but do not belong to a reusable question set
 | `geo_search_evidence` | full-text search stored evidence |
 | `geo_get_evidence` | one evidence row, raw metadata and review history |
 | `geo_analyze_citations` | cited domains and page types |
+| `geo_export_evidence_csv` | export filtered evidence as CSV content (same filters/fields as Web API) |
 
 ### Analysis
 
@@ -110,6 +111,7 @@ geo_search_web({
 geo_analyze_brand({ brandId: "...", days: 30 })
 geo_compare_competitors({ brandId: "...", days: 30 })
 geo_generate_report({ taskId: "...", compareTaskId: "...", title: "GEO 复测报告" })
+geo_export_evidence_csv({ brand: "元宝", query: "搜索", limit: 200 })
 ```
 
 ## Safety

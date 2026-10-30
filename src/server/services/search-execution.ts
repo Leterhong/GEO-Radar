@@ -103,6 +103,9 @@ export async function createSearchTask(
     if (input.provider !== "YUANBAO") {
       throw new SearchExecutionError("INVALID_MODE", "真实模式只能使用元宝搜索数据源");
     }
+    if (input.maxResults !== undefined && ![10, 20, 30, 40, 50].includes(input.maxResults)) {
+      throw new SearchExecutionError("INVALID_MAX_RESULTS", "元宝搜索返回条数 Cnt 仅支持 10/20/30/40/50。");
+    }
     const credential = await prisma.searchProviderCredential.findUnique({ where: { workspaceId } });
     const guard = evaluateRealModeGuard(credential);
     if (!guard.ok) throw new SearchExecutionError(guard.code ?? "PROVIDER_UNAVAILABLE", guard.reason ?? "数据源不可用");

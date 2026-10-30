@@ -15,6 +15,7 @@ dist/
 .env*.local
 .env.docker
 packages/dsh-geo-radar/cordis.patch.yml
+packages/geo-radar-dsh/cordis.patch.yml
 
 # testing
 coverage/
