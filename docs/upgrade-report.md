@@ -91,6 +91,11 @@
   - `Competitor.enabled`
 - `20261030001000_optimization_needs_verification`
   - `OptimizationStatus.NEEDS_VERIFICATION`
+- `20261030002000_page_type_social_review`
+  - `PageType.SOCIAL_MEDIA`
+  - `PageType.REVIEW_PAGE`
+- `20261030003000_optimization_task_page_url`
+  - `OptimizationTask.pageUrl`
 
 已在本地库与全新 `georadar_ci_check` 库执行，`prisma migrate diff` 为空。
 
@@ -115,7 +120,9 @@
 ## 5. 未完成 / 下一阶段
 
 - PDF 服务端生成（当前为浏览器打印/另存 PDF）
+- 多实例任务 worker / leader 选举
 - 真实生产压测与 Redis 限流
+- DSH 插件真实 `dsh plugin add` + 重启验证（当前环境无 dsh CLI）
 
 ## 6. 本地运行
 
