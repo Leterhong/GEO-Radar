@@ -293,7 +293,7 @@ export function QuestionsManager({
           <Upload className="mr-1 h-4 w-4" /> 批量导入
         </Button>
         <Button variant="outline" asChild>
-          <a href="/api/questions/import" download>
+          <a href={selectedSet === "all" ? "/api/questions/export" : `/api/questions/export?questionSetId=${selectedSet}`} download>
             <Download className="mr-1 h-4 w-4" /> 导出
           </a>
         </Button>

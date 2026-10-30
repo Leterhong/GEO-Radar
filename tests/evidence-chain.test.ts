@@ -67,6 +67,8 @@ describe("页面类型识别", () => {
     expect(classifyPage({ url: "https://36kr.com/p/123" }).pageType).toBe("THIRD_PARTY_MEDIA");
     expect(classifyPage({ url: "https://zhihu.com/question/123" }).pageType).toBe("COMMUNITY_FORUM");
     expect(classifyPage({ url: "https://item.jd.com/123.html" }).pageType).toBe("ECOMMERCE_PAGE");
+    expect(classifyPage({ url: "https://weibo.com/12345/abc" }).pageType).toBe("SOCIAL_MEDIA");
+    expect(classifyPage({ url: "https://www.g2.com/products/acme/reviews" }).pageType).toBe("REVIEW_PAGE");
     expect(classifyPage({ url: "https://news.example.com/2026/10/post", title: "Acme 产品深度评测" }).pageType).toBe(
       "THIRD_PARTY_MEDIA"
     );

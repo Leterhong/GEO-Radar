@@ -46,6 +46,8 @@ const PAGE_TYPE_LABELS: Record<string, string> = {
   DOCS_PAGE: "文档页",
   BLOG_NEWS: "博客/资讯",
   THIRD_PARTY_MEDIA: "第三方媒体",
+  REVIEW_PAGE: "测评/软件目录",
+  SOCIAL_MEDIA: "社交媒体",
   ECOMMERCE_PAGE: "电商页",
   COMMUNITY_FORUM: "社区/论坛",
   OTHER: "其他",

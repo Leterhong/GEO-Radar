@@ -355,7 +355,12 @@ describe.skipIf(!dbAvailable)("集成：真实搜索证据链 → 矩阵 → 复
       await new Promise((resolve) => setTimeout(resolve, 200));
     }
     expect(runStatus).toBe("COMPLETED");
-    const scheduleAfter = await prisma.schedule.findUnique({ where: { id: created.schedule.id } });
+    const scheduleDeadline = Date.now() + 10_000;
+    let scheduleAfter = await prisma.schedule.findUnique({ where: { id: created.schedule.id } });
+    while (Date.now() < scheduleDeadline && scheduleAfter?.lastRunStatus !== "COMPLETED" && scheduleAfter?.lastRunStatus !== "FAILED") {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      scheduleAfter = await prisma.schedule.findUnique({ where: { id: created.schedule.id } });
+    }
     expect(scheduleAfter?.lastRunStatus).toBe("COMPLETED");
     expect(scheduleAfter?.nextRunAt?.getTime()).toBeGreaterThan(Date.now());
 

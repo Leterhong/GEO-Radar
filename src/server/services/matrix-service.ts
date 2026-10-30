@@ -179,8 +179,10 @@ const PAGE_TYPE_LABELS: Record<PageTypeValue, string> = {
   DOCS_PAGE: "文档/帮助中心",
   BLOG_NEWS: "博客/资讯页",
   THIRD_PARTY_MEDIA: "第三方媒体页",
+  REVIEW_PAGE: "测评/软件目录",
   ECOMMERCE_PAGE: "电商/商品页",
   COMMUNITY_FORUM: "社区/论坛页",
+  SOCIAL_MEDIA: "社交媒体",
   OTHER: "其他页面",
   UNKNOWN: "未知类型",
 };

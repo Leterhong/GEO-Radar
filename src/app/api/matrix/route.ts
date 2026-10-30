@@ -33,6 +33,8 @@ export async function GET(request: Request) {
             "DOCS_PAGE",
             "BLOG_NEWS",
             "THIRD_PARTY_MEDIA",
+  "REVIEW_PAGE",
+  "SOCIAL_MEDIA",
             "ECOMMERCE_PAGE",
             "COMMUNITY_FORUM",
             "OTHER",

@@ -11,7 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatPercent } from "@/lib/utils";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 
 interface CompetitorRow {
   id: string;
@@ -40,6 +40,7 @@ export function CompetitorManager({
   const router = useRouter();
   const [rows, setRows] = useState(competitors);
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<CompetitorRow | null>(null);
   const [name, setName] = useState("");
   const [aliases, setAliases] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
@@ -53,58 +54,98 @@ export function CompetitorManager({
   const maxSamples = Math.max(brand.validSamples, ...activeRows.map((r) => r.validSamples), 0);
   const sampleMismatch = activeRows.some((r) => r.validSamples !== brand.validSamples);
 
-  async function handleAdd() {
+  async function openCreate() {
+    setEditing(null);
+    setName("");
+    setAliases("");
+    setWebsiteUrl("");
+    setIndustry("");
+    setProducts("");
+    setEnabled(true);
+    setDescription("");
+    setOpen(true);
+  }
+
+  function openEdit(row: CompetitorRow) {
+    setEditing(row);
+    setName(row.name);
+    setAliases(row.aliases.join("、"));
+    setWebsiteUrl(row.websiteUrl ?? "");
+    setIndustry(row.industry ?? "");
+    setProducts(row.products.join("、"));
+    setEnabled(row.enabled);
+    setDescription(row.description ?? "");
+    setOpen(true);
+  }
+
+  async function handleSave() {
     if (name.trim() === "") {
       toast.error("请填写竞品名称");
       return;
     }
     setBusy(true);
     try {
-      const res = await fetch("/api/competitors", {
-        method: "POST",
+      const payload = {
+        name: name.trim(),
+        aliases: aliases.split(/[,，、\n]/).map((s) => s.trim()).filter(Boolean).slice(0, 20),
+        websiteUrl,
+        industry: industry.trim(),
+        products: products.split(/[,，、\n]/).map((s) => s.trim()).filter(Boolean).slice(0, 30),
+        enabled,
+        description,
+      };
+      const res = await fetch(editing ? `/api/competitors/${editing.id}` : "/api/competitors", {
+        method: editing ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          brandId,
-          name: name.trim(),
-          aliases: aliases.split(/[,，、\n]/).map((s) => s.trim()).filter(Boolean).slice(0, 20),
-          websiteUrl,
-          industry: industry.trim(),
-          products: products.split(/[,，、\n]/).map((s) => s.trim()).filter(Boolean).slice(0, 30),
-          enabled,
-          description,
-        }),
+        body: JSON.stringify(editing ? payload : { ...payload, brandId }),
       });
       const json = await res.json();
       if (!json.ok) {
-        toast.error(json?.error?.message ?? "添加失败");
+        toast.error(json?.error?.message ?? "保存失败");
         return;
       }
-      toast.success("竞品已添加，执行搜索后会出现对比数据");
-      setRows((prev) => [
-        ...prev,
-        {
-          id: json.data.id,
-          name: json.data.name,
-          aliases: json.data.aliases ?? [],
-          websiteUrl: json.data.websiteUrl,
-          websiteDomain: json.data.websiteDomain,
-          industry: json.data.industry,
-          products: json.data.products ?? [],
-          enabled: json.data.enabled,
-          description: json.data.description,
-          note: null,
-          appearanceRate: null,
-          validSamples: 0,
-        },
-      ]);
+      if (editing) {
+        setRows((prev) =>
+          prev.map((r) =>
+            r.id === editing.id
+              ? {
+                  ...r,
+                  name: json.data.name,
+                  aliases: json.data.aliases ?? [],
+                  websiteUrl: json.data.websiteUrl,
+                  websiteDomain: json.data.websiteDomain,
+                  industry: json.data.industry,
+                  products: json.data.products ?? [],
+                  enabled: json.data.enabled,
+                  description: json.data.description,
+                }
+              : r
+          )
+        );
+        toast.success("竞品已更新");
+      } else {
+        setRows((prev) => [
+          ...prev,
+          {
+            id: json.data.id,
+            name: json.data.name,
+            aliases: json.data.aliases ?? [],
+            websiteUrl: json.data.websiteUrl,
+            websiteDomain: json.data.websiteDomain,
+            industry: json.data.industry,
+            products: json.data.products ?? [],
+            enabled: json.data.enabled,
+            description: json.data.description,
+            note: null,
+            appearanceRate: null,
+            validSamples: 0,
+          },
+        ]);
+        toast.success("竞品已添加，执行搜索后会出现对比数据");
+      }
       setOpen(false);
-      setName("");
-      setAliases("");
-      setWebsiteUrl("");
-      setIndustry("");
-      setProducts("");
-      setEnabled(true);
-      setDescription("");
+      setEditing(null);
+      router.refresh();
     } finally {
       setBusy(false);
     }
@@ -195,6 +236,9 @@ export function CompetitorManager({
                   <TableCell className="font-mono text-[12px] text-tertiary">{r.websiteDomain ?? "—"}</TableCell>
                   <TableCell>
                     <div className="flex gap-1">
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(r)} disabled={busy} aria-label="编辑竞品">
+                        <Pencil className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                      </Button>
                       <Button variant="ghost" size="sm" onClick={() => toggleEnabled(r)} disabled={busy}>
                         {r.enabled ? "停用" : "启用"}
                       </Button>
@@ -218,15 +262,15 @@ export function CompetitorManager({
         </Card>
       ) : null}
 
-      <Button onClick={() => setOpen(true)}>
+      <Button onClick={openCreate}>
         <Plus className="mr-1 h-4 w-4" /> 添加竞品
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>添加竞品</DialogTitle>
-            <DialogDescription>竞品名称、别名与官网域名用于规则识别搜索结果中的竞品提及。</DialogDescription>
+            <DialogTitle>{editing ? "编辑竞品" : "添加竞品"}</DialogTitle>
+            <DialogDescription>竞品名称、别名、行业与产品名用于规则识别；官网域名用于竞品官网页面判定。</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1.5">
@@ -264,8 +308,8 @@ export function CompetitorManager({
             <Button variant="outline" onClick={() => setOpen(false)}>
               取消
             </Button>
-            <Button onClick={handleAdd} disabled={busy}>
-              添加
+            <Button onClick={handleSave} disabled={busy}>
+              {editing ? "保存修改" : "添加"}
             </Button>
           </DialogFooter>
         </DialogContent>

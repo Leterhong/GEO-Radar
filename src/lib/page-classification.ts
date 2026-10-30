@@ -15,8 +15,10 @@ export type PageTypeValue =
   | "DOCS_PAGE"
   | "BLOG_NEWS"
   | "THIRD_PARTY_MEDIA"
+  | "REVIEW_PAGE"
   | "ECOMMERCE_PAGE"
   | "COMMUNITY_FORUM"
+  | "SOCIAL_MEDIA"
   | "OTHER"
   | "UNKNOWN";
 
@@ -99,6 +101,34 @@ const COMMUNITY_DOMAINS = [
   "news.ycombinator.com",
   "discord.com",
   "slack.com",
+];
+
+const SOCIAL_DOMAINS = [
+  "weibo.com",
+  "x.com",
+  "twitter.com",
+  "facebook.com",
+  "linkedin.com",
+  "xiaohongshu.com",
+  "douyin.com",
+  "tiktok.com",
+  "instagram.com",
+  "threads.net",
+  "bilibili.com",
+  "youtube.com",
+];
+
+const REVIEW_DOMAINS = [
+  "g2.com",
+  "capterra.com",
+  "trustradius.com",
+  "getapp.com",
+  "softwareadvice.com",
+  "producthunt.com",
+  "slant.co",
+  "saasworthy.com",
+  "financesonline.com",
+  "sourceforge.net",
 ];
 
 const MEDIA_DOMAINS = [
@@ -221,6 +251,28 @@ export function classifyPage(input: PageClassificationInput): PageClassification
       sourceRole: "THIRD_PARTY",
       ruleId: "third-party:ecommerce-domain",
       reason: `电商平台域名 ${hostname}`,
+      hostname,
+      isOfficialDomain: false,
+      confidence: "high",
+    };
+  }
+  if (matchesAnyDomain(hostname, SOCIAL_DOMAINS)) {
+    return {
+      pageType: "SOCIAL_MEDIA",
+      sourceRole: "THIRD_PARTY",
+      ruleId: "third-party:social-domain",
+      reason: `社交媒体平台域名 ${hostname}`,
+      hostname,
+      isOfficialDomain: false,
+      confidence: "high",
+    };
+  }
+  if (matchesAnyDomain(hostname, REVIEW_DOMAINS)) {
+    return {
+      pageType: "REVIEW_PAGE",
+      sourceRole: "THIRD_PARTY",
+      ruleId: "third-party:review-domain",
+      reason: `第三方测评/软件目录域名 ${hostname}`,
       hostname,
       isOfficialDomain: false,
       confidence: "high",
