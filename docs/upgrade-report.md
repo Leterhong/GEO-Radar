@@ -98,6 +98,7 @@
   - `/questions` 200，CSV 导出 200
   - `/competitors` 编辑弹窗可打开
 - 新增 `tests/platform-upgrade.test.ts`，覆盖新增 schema 字段与 `NEEDS_VERIFICATION` 状态
+- 对已有真实基线任务执行一次 `evidence-v3` 重算：100 条证据更新，创建 `RECOMPUTE` 快照，未覆盖原 `COLLECTION` 快照
 
 ## 5. 未完成 / 下一阶段
 
