@@ -50,6 +50,35 @@ export function OptimizationEventsPanel({
   const [baselineTaskId, setBaselineTaskId] = useState("none");
   const [retestTaskId, setRetestTaskId] = useState("none");
   const [saving, setSaving] = useState(false);
+  const [reportingId, setReportingId] = useState<string | null>(null);
+
+  async function createReport(event: EventRow) {
+    if (!event.baselineTaskId || !event.retestTaskId) {
+      toast.error("请先关联优化前和优化后任务");
+      return;
+    }
+    setReportingId(event.id);
+    try {
+      const res = await fetch("/api/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          taskId: event.retestTaskId,
+          compareTaskId: event.baselineTaskId,
+          title: `优化效果验证：${event.name}`,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) {
+        toast.error(json?.error?.message ?? "生成报告失败");
+        return;
+      }
+      toast.success("验证报告已生成");
+      window.location.href = `/reports/${json.data.id}`;
+    } finally {
+      setReportingId(null);
+    }
+  }
 
   async function createEvent() {
     if (!name.trim()) {
@@ -127,11 +156,16 @@ export function OptimizationEventsPanel({
                     ) : null}
                   </div>
                   {event.baselineTaskId && event.retestTaskId ? (
-                    <Button size="sm" variant="outline" asChild>
-                      <a href={`/compare?baseline=${event.baselineTaskId}&retest=${event.retestTaskId}`}>
-                        查看前后对比 <ArrowRight className="ml-1 h-3.5 w-3.5" />
-                      </a>
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                      <Button size="sm" variant="outline" asChild>
+                        <a href={`/compare?baseline=${event.baselineTaskId}&retest=${event.retestTaskId}`}>
+                          查看前后对比 <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                        </a>
+                      </Button>
+                      <Button size="sm" onClick={() => createReport(event)} disabled={reportingId === event.id}>
+                        {reportingId === event.id ? "生成中…" : "生成验证报告"}
+                      </Button>
+                    </div>
                   ) : (
                     <Badge variant="muted">未关联前后任务</Badge>
                   )}
