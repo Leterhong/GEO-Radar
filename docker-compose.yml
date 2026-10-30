@@ -46,5 +46,18 @@ services:
       retries: 12
       start_period: 30s
 
+  scheduler:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    entrypoint: ["node", "scripts/scheduler.mjs"]
+    environment:
+      APP_URL: http://app:3000
+      CRON_SECRET: ${CRON_SECRET:?请在 .env.docker 中设置 CRON_SECRET}
+      SCHEDULE_TICK_INTERVAL_MS: ${SCHEDULE_TICK_INTERVAL_MS:-60000}
+
+
 volumes:
   pgdata:

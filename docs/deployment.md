@@ -79,7 +79,8 @@ docker compose up -d --build
 
 定时采集不依赖浏览器页面，但需要外部调度入口：
 
-- **单机 / 小规模**：在 Web 服务之外运行一个 `npm run scheduler` 进程（与 Web 同一份代码、同一 `DATABASE_URL`/`CRON_SECRET`），默认每 60s 调用 `POST /api/schedules/tick`。
+- **Docker Compose 一键启动**：`npm run docker:up` 会同时启动 `scheduler` 服务，使用容器内 `http://app:3000/api/schedules/tick` 和自动生成的 `CRON_SECRET`，无需额外 cron。
+- **单机 / 小规模（非 Docker）**：在 Web 服务之外运行一个 `npm run scheduler` 进程（与 Web 同一份代码、同一 `DATABASE_URL`/`CRON_SECRET`），默认每 60s 调用 `POST /api/schedules/tick`。
 - **平台 cron（推荐多实例）**：配置平台定时任务调用 `POST https://your-host/api/schedules/tick`，请求头 `x-cron-secret: $CRON_SECRET`。只运行一个调度入口；`ScheduleRun(scheduleId, plannedAt)` 唯一约束会兜底重复触发。
 - **未配置 CRON_SECRET**：tick 只允许已登录用户触发当前工作空间，适合开发/手动验证。
 
@@ -93,5 +94,5 @@ docker compose up -d --build
 
 1. **搜索任务执行器运行在 Web 进程内**：单实例 Node 部署可靠；多实例/serverless 部署需将执行器迁出为后台工作进程（接口不变），并在其前置队列服务。
 2. **内存限流为单实例语义**：多实例需替换为共享存储实现（`src/server/api/helpers.ts` 的 `rateLimit`）。
-3. **定时采集依赖外部调度器**：不提供内置常驻调度服务；`scripts/scheduler.mjs` 是轻量单机方案。
+3. **定时采集执行器仍在 Web 进程内**：Docker Compose 已内置 scheduler 服务；生产多实例仍建议使用平台 cron 或 leader 选举，避免多个调度入口。
 4. Docker 构建（`npm ci` + next build）在无外网缓存环境耗时较长，首次构建请预留时间。
