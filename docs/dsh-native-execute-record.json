@@ -1,0 +1,53 @@
+{
+  "capturedAt": "2026-10-30T12:02:00Z",
+  "environment": {
+    "dshToolsVersion": "0.1.5-rc.3",
+    "node": "23.10.0",
+    "transport": "Cordis ToolRuntime (service-level; not full DSH Web boot)"
+  },
+  "toolCount": 9,
+  "tools": [
+    "geo_analyze_brand",
+    "geo_analyze_citations",
+    "geo_analyze_domain",
+    "geo_batch_search",
+    "geo_compare_competitors",
+    "geo_generate_report",
+    "geo_get_evidence",
+    "geo_list_evidence",
+    "geo_search_web"
+  ],
+  "calls": [
+    {
+      "tool": "geo_analyze_brand",
+      "args": { "days": 30 },
+      "status": "ok",
+      "durationMs": 5948,
+      "summary": "object(metrics,trend,sources,brands,recentTasks,recentEvidence)"
+    },
+    {
+      "tool": "geo_list_evidence",
+      "args": { "pageSize": 2 },
+      "status": "ok",
+      "durationMs": 212,
+      "summary": "object(evidence,total,page,pageSize)"
+    },
+    {
+      "tool": "geo_search_web",
+      "args": { "query": "AI 搜索助手有哪些", "executionMode": "MOCK", "maxResults": 10 },
+      "status": "ok",
+      "durationMs": 1970,
+      "summary": "object(id,name,status,provider,executionMode,successItems,failedItems,emptyItems)"
+    },
+    {
+      "tool": "geo_analyze_domain",
+      "args": {},
+      "status": "error",
+      "durationMs": 1,
+      "summary": "invalid arguments: missing required property \"brandId\""
+    }
+  ],
+  "searchTaskId": "cmvuwvqsr000110ikpxsb3q95",
+  "invalidArgumentRejected": true,
+  "note": "Mock task and test token were removed after the run; SearchPro quota was not consumed."
+}

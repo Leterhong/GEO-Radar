@@ -9,6 +9,7 @@
   },
   "files": [
     "index.mjs",
+    "export-file.mjs",
     "README.md"
   ],
   "engines": {

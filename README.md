@@ -116,6 +116,15 @@ GEO_RADAR_TOKEN=gr_... \
 npm run smoke:mcp
 ```
 
+CSV 默认返回内容；如允许 MCP 主机落盘，设置绝对目录后再用 `outputMode=file`：
+
+```powershell
+$env:GEO_RADAR_EXPORT_DIR="G:\geo-exports"
+npm run smoke:mcp:export
+```
+
+文件模式只写 MCP 主机本地，不会生成虚构下载 URL。
+
 ### 3. DSH 插件
 
 MCP 模式（官方桥接）：
@@ -134,6 +143,7 @@ Cordis 原生模式：
 ```bash
 node scripts/install-dsh-native.mjs
 cd packages/geo-radar-dsh
+npm install
 dsh plugin --profile desktop add .
 # 重启 DSH，出现 geo_search_web / geo_analyze_brand / geo_list_evidence
 ```
@@ -199,6 +209,9 @@ Yuanbao SearchPro
 | [docs/deployment.md](docs/deployment.md) | 部署、认证 Cookie、调度 |
 | [docs/upgrade-report.md](docs/upgrade-report.md) | 本轮平台升级交付报告 |
 | [docs/extensions-acceptance.md](docs/extensions-acceptance.md) | Skill / MCP / DSH / SearchPro 验收报告 |
+| [docs/extensions-round2-acceptance.md](docs/extensions-round2-acceptance.md) | 第二轮：DSH execute、Claude、SearchPro 矩阵、CSV 文件 |
+| [docs/searchpro-matrix.md](docs/searchpro-matrix.md) | SearchPro 10 类测试矩阵与真实测试授权边界 |
+| [docs/claude-skill-discovery.md](docs/claude-skill-discovery.md) | Claude Code Skill 发现/401 复现记录 |
 | [docs/article-geo-radar.md](docs/article-geo-radar.md) | 实战文章 |
 
 ---

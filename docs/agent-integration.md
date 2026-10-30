@@ -6,8 +6,9 @@ GEO Radar 可以作为一个 **Agent 可调用的证据平台**，而不只是�
 
 ```text
 skills/geo-radar/SKILL.md          Agent Skill（工作流与安全规则）
-packages/geo-radar-mcp/            MCP Server（12 个 geo_* 工具）
-packages/dsh-geo-radar/            DSH 插件（纯声明，挂载 MCP）
+packages/geo-radar-mcp/            MCP Server（22 个 geo_* 工具）
+packages/dsh-geo-radar/            DSH MCP 桥接插件（mcp__geo-radar__*）
+packages/geo-radar-dsh/            DSH Native/Cordis 插件（geo_*）
 ```
 
 ---
@@ -115,7 +116,7 @@ npm run smoke:mcp
 输出应包含：
 
 ```text
-TOOLS 12
+TOOLS 22
 BRANDS ...
 MCP SMOKE PASSED
 ```
@@ -136,6 +137,24 @@ MCP SMOKE PASSED
 | `geo_start_task` | 启动任务；REAL 必须 `confirmReal=true` |
 | `geo_create_report` | 生成冻结报告（仅 REAL 任务） |
 | `geo_get_report` | 读取报告（默认摘要 + 预览；`includeMarkdown=true` 返回全文） |
+| `geo_search_web` | 单 Query 搜索（默认 MOCK；REAL 需 `confirmReal=true`） |
+| `geo_batch_search` | 最多 10 Query 的批量搜索 |
+| `geo_list_evidence` | 按品牌/域名/任务/页面类型/状态查询证据 |
+| `geo_search_evidence` | 证据全文检索 |
+| `geo_analyze_brand` | 品牌可见度、趋势、来源 |
+| `geo_analyze_domain` | 官网/第三方/页面类型覆盖 |
+| `geo_compare_competitors` | 同分母竞品对比 |
+| `geo_analyze_citations` | 引用来源域名/页面类型 |
+| `geo_generate_report` | 生成冻结报告 |
+| `geo_export_evidence_csv` | 导出 CSV 内容或安全落盘文件 |
+
+CSV 文件模式（默认关闭）：
+
+```powershell
+$env:GEO_RADAR_EXPORT_DIR="G:\geo-exports"
+```
+
+只允许写入该目录及其子目录；`outputMode="file"` 返回真实路径，不返回虚构下载 URL。
 
 ### 安全边界
 
@@ -171,16 +190,20 @@ Skill 告诉 Agent：
 
 ## 4. DSH 插件
 
-DSH 插件是“纯声明”形态：它把 `@deepseek-ai/dsh-mcp-client` 一行插入 profile，不包含 UI 代码。
+有两种模式，二选一：
 
-### 安装
+- `packages/dsh-geo-radar`：官方 `@deepseek-ai/dsh-mcp-client` 桥接，工具名为 `mcp__geo-radar__*`
+- `packages/geo-radar-dsh`：Cordis `ctx.tools.register(defineTool(...))` 原生工具，工具名为 `geo_*`
+
+### MCP 桥接安装
 
 ```bash
 export GEO_RADAR_URL=http://127.0.0.1:3000
 export GEO_RADAR_TOKEN=gr_...
 
 node scripts/install-dsh-plugin.mjs
-dsh plugin --profile web add "$PWD/packages/dsh-geo-radar"
+cd packages/dsh-geo-radar
+dsh plugin --profile desktop add .
 ```
 
 Windows PowerShell：
@@ -189,8 +212,21 @@ Windows PowerShell：
 $env:GEO_RADAR_URL = "http://127.0.0.1:3000"
 $env:GEO_RADAR_TOKEN = "gr_..."
 node scripts/install-dsh-plugin.mjs
-dsh plugin --profile web add "$PWD\packages\dsh-geo-radar"
+cd packages\dsh-geo-radar
+dsh plugin --profile desktop add .
 ```
+
+### Native 安装
+
+```powershell
+node scripts/install-dsh-native.mjs
+cd packages/geo-radar-dsh
+npm install
+dsh plugin --profile desktop add .
+```
+
+Native 插件在 `apply(ctx)` 中注册 9 个工具；它调用 GEO Radar Core API，
+不重复业务逻辑。
 
 ### 重启
 
@@ -206,6 +242,8 @@ mcp__geo-radar__geo_get_matrix
 mcp__geo-radar__geo_compare_rounds
 ...
 ```
+
+Native 模式应出现 `geo_search_web`、`geo_list_evidence`、`geo_analyze_brand` 等 9 个工具。
 
 ### 生成的补丁
 
@@ -231,7 +269,7 @@ mcp__geo-radar__geo_compare_rounds
 ### 卸载
 
 ```bash
-dsh plugin --profile web remove @geo-radar/dsh-plugin
+dsh plugin --profile desktop remove @geo-radar/dsh-plugin
 ```
 
 ---

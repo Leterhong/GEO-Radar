@@ -12,6 +12,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import { writeCsvFile } from "./export-file.mjs";
 
 const BASE = (process.env.GEO_RADAR_URL || "http://127.0.0.1:3000").replace(/\/+$/, "");
 const TOKEN = process.env.GEO_RADAR_TOKEN;
@@ -614,7 +615,7 @@ server.registerTool(
   "geo_export_evidence_csv",
   {
     description:
-      "Export stored evidence to CSV using the same filtering/export rules as the GEO Radar web API. Returns CSV content plus filename/metadata; it does not invent a download URL.",
+      "Export stored evidence to CSV using the same filtering/export rules as the GEO Radar web API. Default outputMode=content returns CSV text. outputMode=file writes only inside GEO_RADAR_EXPORT_DIR on the MCP host and returns a real path; no download URL is invented.",
     inputSchema: {
       brand: z.string().optional().describe("Brand name; resolved in the current workspace"),
       domain: z.string().optional(),
@@ -623,9 +624,12 @@ server.registerTool(
       endDate: z.string().optional().describe("ISO date/time upper bound"),
       evidenceIds: z.array(z.string()).max(500).optional(),
       limit: z.number().int().min(1).max(1000).optional(),
+      outputMode: z.enum(["content", "file"]).optional().describe("content (default) or file"),
+      outputDirectory: z.string().optional().describe("Must be inside GEO_RADAR_EXPORT_DIR"),
+      filename: z.string().optional().describe("Safe .csv filename; path separators are rejected"),
     },
   },
-  async ({ brand, domain, query, startDate, endDate, evidenceIds, limit = 500 }) => {
+  async ({ brand, domain, query, startDate, endDate, evidenceIds, limit = 500, outputMode = "content", outputDirectory, filename }) => {
     try {
       let brandId;
       if (brand) {
@@ -642,21 +646,57 @@ server.registerTool(
         ...(endDate ? { until: endDate } : {}),
         ...(evidenceIds?.length ? { evidenceIds } : {}),
       };
-      const csv = await apiText("/api/evidence", {
+      let csv = await apiText("/api/evidence", {
         method: "POST",
         body: JSON.stringify({ filters, limit }),
       });
-      const filename = `georadar-evidence-${new Date().toISOString().slice(0, 10)}.csv`;
+      // fetch Response.text() strips a leading BOM; restore it for Excel/Chinese.
+      if (!csv.startsWith("\uFEFF")) csv = `\uFEFF${csv}`;
+      const rowHint = Math.max(0, csv.trim().split(/\r?\n/).length - 1);
+      if (outputMode === "file") {
+        const written = await writeCsvFile({
+          csv,
+          exportDir: process.env.GEO_RADAR_EXPORT_DIR,
+          outputDirectory,
+          filename,
+        });
+        return {
+          content: [
+            {
+              type: "text",
+              text: JSON.stringify(
+                {
+                  status: "exported",
+                  outputMode: "file",
+                  filename: written.filename,
+                  path: written.path,
+                  bytes: written.bytes,
+                  rowHint,
+                  filters,
+                  exportedAt: new Date().toISOString(),
+                  note: "Written on the MCP host. This is not a public download URL.",
+                },
+                null,
+                2
+              ),
+            },
+          ],
+        };
+      }
+      const safeFilename = `georadar-evidence-${new Date().toISOString().slice(0, 10)}.csv`;
       return {
         content: [
           {
             type: "text",
             text: JSON.stringify(
               {
-                filename,
+                status: "exported",
+                outputMode: "content",
+                filename: safeFilename,
                 bytes: Buffer.byteLength(csv, "utf8"),
-                rowHint: Math.max(0, csv.trim().split(/\r?\n/).length - 1),
+                rowHint,
                 filters,
+                exportedAt: new Date().toISOString(),
                 note: "CSV content is returned in the next text block. It is not a public download URL.",
               },
               null,

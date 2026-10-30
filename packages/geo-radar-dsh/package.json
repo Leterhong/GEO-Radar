@@ -4,11 +4,24 @@
   "description": "Native DSH/Cordis tools for GEO Radar search, evidence, analysis and reports.",
   "type": "module",
   "main": "index.js",
-  "files": ["index.js", "cordis.patch.yml", "README.md"],
-  "keywords": ["dsh", "dsh-plugin", "cordis", "geo-radar"],
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "README.md"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "cordis",
+    "geo-radar"
+  ],
   "peerDependencies": {
+    "@deepseek-ai/cordis": "*",
+    "@deepseek-ai/dsh-tools": "*"
+  },
+  "dependencies": {
     "@deepseek-ai/dsh-tools": "*",
-    "@deepseek-ai/cordis": "*"
+    "geo-radar": "file:../.."
   },
   "dsh": {
     "bundle": {

@@ -52,8 +52,11 @@
     "token:create": "node scripts/create-token.mjs",
     "dsh:install": "node scripts/install-dsh-plugin.mjs",
     "dsh:native:install": "node scripts/install-dsh-native.mjs",
+    "dsh:native:smoke": "node scripts/dsh-native-smoke.mjs",
     "smoke:mcp": "node scripts/mcp-smoke.mjs",
+    "smoke:mcp:export": "node scripts/mcp-export-smoke.mjs",
     "searchpro:smoke:real": "node scripts/searchpro-smoke.mjs",
+    "searchpro:matrix": "node scripts/searchpro-matrix.mjs",
     "key:import": "node scripts/import-env-key.mjs"
   },
   "prisma": {

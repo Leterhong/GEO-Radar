@@ -103,7 +103,7 @@
 
 - `npm run typecheck`：通过
 - `npm run lint`：通过
-- `npm test`：**127 passed / 8 files**
+- `npm test`：**131 passed / 9 files**
 - `npm run build`：通过
 - 浏览器实测：
   - `/dashboard` 200，无 console error

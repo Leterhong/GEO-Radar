@@ -23,6 +23,7 @@ export GEO_RADAR_URL=http://127.0.0.1:3000
 export GEO_RADAR_TOKEN=gr_...
 node scripts/install-dsh-native.mjs
 cd packages/geo-radar-dsh
+npm install
 dsh plugin --profile desktop add .
 ```
 
@@ -67,5 +68,16 @@ geo_generate_report
 ## Verification boundary
 
 `index.js` can be imported and inspected without DSH, but actual registration
-requires a DSH host with `@deepseek-ai/dsh-tools` and `tools` service. If the
-current DSH CLI is unavailable, mark install/load as unverified, not passed.
+requires a DSH host with `@deepseek-ai/dsh-tools` and `tools` service. The
+service-level execution test uses the official `ToolRuntime`:
+
+```powershell
+npm install --prefix .dsh-tools @deepseek-ai/dsh-tools@0.1.5-rc.3
+$env:DSH_TOOLS_DIR=(Resolve-Path .dsh-tools/node_modules).Path
+$env:GEO_RADAR_TOKEN="gr_..."
+$env:GEO_RADAR_URL="http://127.0.0.1:3000"
+node scripts/dsh-native-smoke.mjs
+```
+
+This proves schema validation, parameter passing, execute, and result shape for
+three tools. It is not the same as a full DSH Web UI boot; report that separately.

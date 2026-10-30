@@ -170,7 +170,7 @@ PATCH/DELETE /api/optimization-events/[id]
 ```text
 npm test
 Test Files  6 passed (6)
-Tests       127 passed (127)
+Tests       131 passed (131)
 ```
 
 新增测试：

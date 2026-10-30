@@ -16,7 +16,7 @@
 | 7 | SearchPro 真实 API | 通过（用户已授权） | 连接测试与 4 个真实 Query 均成功；见下文 RequestId |
 | 8 | 证据链完整性 | 通过 | 4 个 Query → 4 个 RawSearchResponse → 40 条 Evidence → 32 个唯一规范化页面 |
 | 9 | MCP CSV 导出 | 通过 | `geo_export_evidence_csv` 返回 46,934 bytes / 23 行 CSV，含中文、公式注入防护 |
-| 10 | 自动化回归 | 通过 | typecheck、lint、127 tests、build、Docker Compose CI 全通过 |
+| 10 | 自动化回归 | 通过 | typecheck、lint、131 tests、build、Docker Compose CI 全通过 |
 
 ## SearchPro 真实验证
 

@@ -4,7 +4,7 @@
 
 | 层级 | 框架 | 位置 | 状态 |
 | --- | --- | --- | --- |
-| 单元测试（Provider/解析/校验/指标口径纯函数/识别规则/CSV/URL/页面分类/时间计算） | Vitest | `tests/*.test.ts` | 127 个用例全部通过（8 个测试文件） |
+| 单元测试（Provider/解析/校验/指标口径纯函数/识别规则/CSV/URL/页面分类/时间计算） | Vitest | `tests/*.test.ts` | 131 个用例全部通过（9 个测试文件） |
 | 数据库集成（品牌/问题集版本/采集/证据/矩阵/快照/复测/比较/报告/定时） | Vitest + PostgreSQL | `tests/integration-evidence-flow.test.ts` | 8 个用例通过；数据库不可用时自动 skip 并打印原因 |
 | 原 E2E API 冒烟（注册→引导→问题集→守卫→模拟流程→权限） | Node 脚本 | `scripts/smoke.mjs` | 58 项检查通过（需 :3100 生产构建 + 数据库） |
 | 新证据链 API 冒烟 | Node 脚本 | `scripts/smoke-evidence-chain.mjs` | 全部通过（需 `ALLOW_MOCK_REPORTS=true`） |

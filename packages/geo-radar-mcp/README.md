@@ -76,7 +76,24 @@ Ad hoc searches are stored as tasks but do not belong to a reusable question set
 | `geo_search_evidence` | full-text search stored evidence |
 | `geo_get_evidence` | one evidence row, raw metadata and review history |
 | `geo_analyze_citations` | cited domains and page types |
-| `geo_export_evidence_csv` | export filtered evidence as CSV content (same filters/fields as Web API) |
+| `geo_export_evidence_csv` | export filtered evidence as CSV content (default) or a safe local file |
+
+### CSV output modes
+
+`geo_export_evidence_csv` defaults to `outputMode: "content"` and returns CSV text.
+Set `GEO_RADAR_EXPORT_DIR` to an absolute directory to enable:
+
+```text
+geo_export_evidence_csv({
+  brand: "元宝",
+  outputMode: "file",
+  filename: "geo-evidence.csv"
+})
+```
+
+File mode writes on the **MCP host** (not the GEO Radar web server), only inside
+`GEO_RADAR_EXPORT_DIR`, rejects path traversal/unsafe filenames, avoids overwrite,
+and returns the real path. It does not create a download URL.
 
 ### Analysis
 
@@ -142,3 +159,13 @@ npm run smoke:mcp
 ```
 
 The smoke test verifies tool registration and basic reads. Real SearchPro calls are not made by the smoke test.
+
+File mode smoke:
+
+```powershell
+$env:GEO_RADAR_EXPORT_DIR=(Resolve-Path .tmp-export-test).Path
+npm run smoke:mcp:export
+```
+
+This checks content mode, real file writing, Chinese/BOM, overwrite avoidance,
+path traversal rejection and unauthorized directory rejection.

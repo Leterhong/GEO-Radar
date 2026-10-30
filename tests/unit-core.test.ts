@@ -49,6 +49,12 @@ describe("元宝参数校验", () => {
     expect(yuanbaoSearchParamsSchema.safeParse({ query: "x".repeat(201) }).success).toBe(false);
   });
 
+  it("Query 保留特殊字符并 trim", () => {
+    const parsed = yuanbaoSearchParamsSchema.parse({ query: "  AI 搜索 & 品牌/Q3  " });
+    expect(parsed.query).toBe("AI 搜索 & 品牌/Q3");
+    expect(buildYuanbaoRequestBody({ query: "A&B/C + 中文" })).toEqual({ body: { Query: "A&B/C + 中文" } });
+  });
+
   it("请求体：只有提供的参数才会发送", () => {
     const built = buildYuanbaoRequestBody({ query: "q" });
     expect(built).toEqual({ body: { Query: "q" } });

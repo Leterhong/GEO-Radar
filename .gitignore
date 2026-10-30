@@ -16,6 +16,9 @@ dist/
 .env.docker
 packages/dsh-geo-radar/cordis.patch.yml
 packages/geo-radar-dsh/cordis.patch.yml
+.tmp-export-test/
+.tmp-claude-*
+.tmp-skill-*
 
 # testing
 coverage/
